@@ -1,0 +1,412 @@
+#!/usr/bin/env python3
+"""
+通用HuggingFace模型V3策略抓取脚本
+支持多种任务类型: text-classification, token-classification, fill-mask等
+- 只下载config.json，使用随机初始化权重
+- 每个任务类型有独立的workspace目录
+
+用法:
+    python extract_hf_universal_v3.py --list models.txt --task text-classification --batch 0 --total-batches 20
+"""
+
+import os
+import sys
+import json
+import argparse
+import torch
+import traceback
+import time
+from datetime import datetime
+
+# 强制设置代理（必须显式设置，不要依赖setdefault）
+os.environ["http_proxy"] = "http://agent.baidu.com:8891"
+os.environ["https_proxy"] = "http://agent.baidu.com:8891"
+
+# 设置环境变量
+os.environ.setdefault("HF_ENDPOINT", "https://hf-mirror.com")
+
+sys.path.insert(0, "/root/GraphNet")
+from graph_net.torch.extractor import extract
+
+try:
+    from transformers import AutoModel, AutoModelForSequenceClassification, AutoModelForTokenClassification
+    from transformers import AutoModelForQuestionAnswering, AutoModelForMaskedLM
+    from transformers import AutoTokenizer, AutoConfig
+except ImportError as e:
+    print(f"错误: transformers库未安装 - {e}")
+    sys.exit(1)
+
+# 任务类型到模型类的映射
+TASK_MODEL_MAP = {
+    "text-classification": AutoModelForSequenceClassification,
+    "token-classification": AutoModelForTokenClassification,
+    "fill-mask": AutoModelForMaskedLM,
+    "feature-extraction": AutoModel,
+    "question-answering": AutoModelForQuestionAnswering,
+    "text-generation": AutoModel,
+    "translation": AutoModel,
+    "summarization": AutoModel,
+}
+
+# 任务类型到workspace的映射 - 强制归类
+def get_workspace(task_type):
+    base = "/root/graphnet_workspace/huggingface"
+    workspace = os.path.join(base, task_type)
+    # 确保目录存在
+    os.makedirs(workspace, exist_ok=True)
+    return workspace
+
+
+# 验证workspace路径，防止保存到根目录
+def validate_workspace():
+    ws = os.environ.get("GRAPH_NET_EXTRACT_WORKSPACE", "")
+    if not ws or ws == "/root/graphnet_workspace":
+        print("[ERROR] GRAPH_NET_EXTRACT_WORKSPACE not set or set to root workspace!")
+        print("[ERROR] Models must be saved to task-specific folders!")
+        sys.exit(1)
+    if "huggingface" not in ws:
+        print(f"[WARNING] Workspace {ws} may not be in huggingface folder!")
+    return ws
+
+
+def safe_model_name(model_id):
+    """将模型ID转换为安全的目录名"""
+    return model_id.replace("/", "_").replace("-", "_")
+
+
+def get_model_class(task_type):
+    """根据任务类型获取模型类"""
+    return TASK_MODEL_MAP.get(task_type, AutoModel)
+
+
+def generate_extract_script(output_dir, model_id, task_type, max_length=128):
+    """生成extract.py脚本"""
+    script_content = f'''#!/usr/bin/env python3
+"""
+计算图抓取复现脚本 (V3-Universal)
+
+模型: {model_id}
+任务: {task_type}
+策略: 仅下载config，随机初始化权重
+"""
+
+import os
+import sys
+import json
+import argparse
+import torch
+
+os.environ.setdefault("HF_ENDPOINT", "https://hf-mirror.com")
+
+MODEL_ID = "{model_id}"
+TASK_TYPE = "{task_type}"
+MAX_LENGTH = {max_length}
+
+# 任务类型到模型类的映射
+TASK_MODEL_MAP = {{
+    "text-classification": "AutoModelForSequenceClassification",
+    "token-classification": "AutoModelForTokenClassification",
+    "fill-mask": "AutoModelForMaskedLM",
+    "feature-extraction": "AutoModel",
+    "question-answering": "AutoModelForQuestionAnswering",
+    "text-generation": "AutoModel",
+    "translation": "AutoModel",
+    "summarization": "AutoModel",
+}}
+
+
+def extract_graph(output_dir=None, dynamic=False, max_length=None, use_random_init=True):
+    """执行计算图抓取"""
+    if output_dir is None:
+        output_dir = os.path.dirname(os.path.abspath(__file__))
+
+    if max_length is None:
+        max_length = MAX_LENGTH
+
+    print(f"[V3-Universal] 模型: {{MODEL_ID}}")
+    print(f"[V3-Universal] 任务: {{TASK_TYPE}}")
+    print(f"[V3-Universal] 最大长度: {{max_length}}")
+
+    try:
+        from transformers import (
+            AutoModel, AutoModelForSequenceClassification,
+            AutoModelForTokenClassification, AutoModelForQuestionAnswering,
+            AutoModelForMaskedLM, AutoTokenizer, AutoConfig
+        )
+
+        # 获取模型类
+        model_class_name = TASK_MODEL_MAP.get(TASK_TYPE, "AutoModel")
+        model_class = eval(model_class_name)
+
+        # 加载tokenizer
+        tokenizer = AutoTokenizer.from_pretrained(MODEL_ID, trust_remote_code=True)
+
+        # V3策略: 只下载config，随机初始化
+        if use_random_init:
+            print("[V3] 使用随机初始化权重...")
+            config = AutoConfig.from_pretrained(MODEL_ID, trust_remote_code=True)
+            model = model_class.from_config(config)
+        else:
+            print("[V3] 尝试加载预训练权重...")
+            model = model_class.from_pretrained(MODEL_ID, trust_remote_code=True)
+
+        model.eval()
+
+        # 构造输入
+        dummy_text = "This is a sample text for model extraction."
+        inputs = tokenizer(dummy_text, return_tensors="pt", padding="max_length",
+                          max_length=max_length, truncation=True)
+
+        # 使用graph_net提取
+        from graph_net.torch.extractor import extract
+        model_name_safe = MODEL_ID.replace("/", "_")
+        wrapped = extract(name=model_name_safe, dynamic=dynamic)(model).eval()
+
+        with torch.no_grad():
+            wrapped(**inputs)
+
+        # 更新graph_net.json
+        json_path = os.path.join(output_dir, "graph_net.json")
+        data = {{}}
+        if os.path.exists(json_path):
+            with open(json_path) as f:
+                data = json.load(f)
+
+        data["model_id"] = MODEL_ID
+        data["source"] = "huggingface"
+        data["task"] = TASK_TYPE
+        data["max_length"] = max_length
+        data["strategy"] = "v3_random_init"
+
+        with open(json_path, "w") as f:
+            json.dump(data, f, indent=4)
+
+        print(f"[V3] 抓取完成!")
+        return True
+
+    except Exception as e:
+        print(f"[V3] 抓取失败: {{e}}")
+        traceback.print_exc()
+        return False
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--output", "-o", default=None)
+    parser.add_argument("--dynamic", action="store_true")
+    parser.add_argument("--max-length", type=int, default=MAX_LENGTH)
+    parser.add_argument("--use-pretrained", action="store_true")
+    args = parser.parse_args()
+
+    extract_graph(args.output, args.dynamic, args.max_length, use_random_init=not args.use_pretrained)
+
+
+if __name__ == "__main__":
+    main()
+'''
+    script_path = os.path.join(output_dir, "extract.py")
+    with open(script_path, "w") as f:
+        f.write(script_content)
+    os.chmod(script_path, 0o755)
+
+
+def extract_model(model_id, task_type, device="cpu", dynamic=False, max_length=128):
+    """抽取单个模型"""
+    model_name_safe = safe_model_name(model_id)
+    workspace = get_workspace(task_type)
+    output_dir = os.path.join(workspace, model_name_safe)
+    os.makedirs(output_dir, exist_ok=True)
+
+    # 设置并验证工作目录 - 强制归类
+    os.environ["GRAPH_NET_EXTRACT_WORKSPACE"] = workspace
+    validate_workspace()
+
+    print(f"\n{'='*60}")
+    print(f"[V3-Universal] {task_type}: {model_id}")
+    print(f"{'='*60}")
+
+    # 步骤1: 加载tokenizer
+    try:
+        print("[1/4] 加载 Tokenizer...", end=" ", flush=True)
+        tokenizer = AutoTokenizer.from_pretrained(
+            model_id, trust_remote_code=True, local_files_only=False
+        )
+        print("✓")
+    except Exception as e:
+        print(f"✗ Tokenizer失败: {e}")
+        return False, f"Tokenizer: {e}"
+
+    # 步骤2: V3策略 - 只下载config，随机初始化
+    try:
+        print("[2/4] 下载Config并随机初始化...", end=" ", flush=True)
+        model_class = get_model_class(task_type)
+        config = AutoConfig.from_pretrained(
+            model_id, trust_remote_code=True, local_files_only=False
+        )
+        model = model_class.from_config(config)
+        model = model.to(device).eval()
+        param_count = sum(p.numel() for p in model.parameters()) / 1e6
+        print(f"✓ ({param_count:.1f}M参数)")
+    except Exception as e:
+        print(f"✗ 模型初始化失败: {e}")
+        return False, f"Model init: {e}"
+
+    # 步骤3: 构造输入
+    try:
+        print("[3/4] 构造输入数据...", end=" ", flush=True)
+        dummy_text = "This is a sample text for model extraction."
+        inputs = tokenizer(
+            dummy_text, return_tensors="pt", padding="max_length",
+            max_length=max_length, truncation=True
+        )
+        inputs = {k: v.to(device) for k, v in inputs.items()}
+        print(f"✓ {inputs['input_ids'].shape}")
+    except Exception as e:
+        print(f"✗ 输入构造失败: {e}")
+        return False, f"Input: {e}"
+
+    # 步骤4: 抽取计算图
+    try:
+        print("[4/4] 抽取计算图...", end=" ", flush=True)
+        wrapped = extract(name=model_name_safe, dynamic=dynamic)(model).eval()
+
+        with torch.no_grad():
+            wrapped(**inputs)
+
+        # 验证结果
+        if not os.path.exists(os.path.join(output_dir, "graph_net.json")):
+            # 检查子图
+            found = False
+            for i in range(20):
+                if os.path.exists(os.path.join(output_dir, f"subgraph_{i}", "graph_net.json")):
+                    found = True
+                    break
+            if not found:
+                raise RuntimeError("graph_net.json未生成")
+
+        print("✓ 成功!")
+    except Exception as e:
+        print(f"✗ 抽取失败: {e}")
+        traceback.print_exc()
+        return False, f"Extract: {e}"
+
+    # 更新元数据
+    try:
+        json_path = os.path.join(output_dir, "graph_net.json")
+        data = {}
+        if os.path.exists(json_path):
+            with open(json_path) as f:
+                data = json.load(f)
+
+        data.update({
+            "model_id": model_id,
+            "source": "huggingface",
+            "task": task_type,
+            "max_length": max_length,
+            "strategy": "v3_random_init",
+        })
+
+        with open(json_path, "w") as f:
+            json.dump(data, f, indent=4)
+    except Exception as e:
+        print(f"[!] 警告: 更新元数据失败: {e}")
+
+    # 生成extract.py
+    try:
+        generate_extract_script(output_dir, model_id, task_type, max_length)
+        print("[✓] extract.py已生成")
+    except Exception as e:
+        print(f"[!] 警告: 生成extract.py失败: {e}")
+
+    return True, "Success"
+
+
+def main():
+    parser = argparse.ArgumentParser(description="[V3-Universal] HuggingFace模型抓取")
+    parser.add_argument("--list", required=True, help="模型列表文件")
+    parser.add_argument("--task", required=True, help="任务类型")
+    parser.add_argument("--batch", type=int, default=None, help="批次ID")
+    parser.add_argument("--total-batches", type=int, default=1, help="总批次数")
+    parser.add_argument("--device", default="cpu", help="设备")
+    parser.add_argument("--dynamic", action="store_true", help="动态形状")
+    parser.add_argument("--max-length", type=int, default=128, help="最大序列长度")
+
+    args = parser.parse_args()
+
+    # 设置并验证工作目录 - 强制归类到任务文件夹
+    workspace = get_workspace(args.task)
+    os.environ["GRAPH_NET_EXTRACT_WORKSPACE"] = workspace
+    validate_workspace()
+
+    # 读取模型列表
+    with open(args.list) as f:
+        models = [line.strip() for line in f if line.strip()]
+
+    # 批次处理
+    if args.batch is not None:
+        batch_size = len(models) // args.total_batches
+        remainder = len(models) % args.total_batches
+        start_idx = args.batch * batch_size + min(args.batch, remainder)
+        if args.batch < remainder:
+            batch_size += 1
+        models = models[start_idx:start_idx + batch_size]
+        print(f"批次 {args.batch}/{args.total_batches}: 处理 {len(models)} 个模型")
+
+    print(f"\n{'#'*60}")
+    print(f"# [V3-Universal] {args.task}")
+    print(f"# 模型数: {len(models)}")
+    print(f"# 工作目录: {get_workspace(args.task)}")
+    print(f"{'#'*60}\n")
+
+    success = []
+    failed = []
+
+    for i, model_id in enumerate(models):
+        print(f"\n[{i+1}/{len(models)}] {model_id}")
+        ok, msg = extract_model(
+            model_id, args.task, args.device, args.dynamic, args.max_length
+        )
+        if ok:
+            success.append(model_id)
+        else:
+            failed.append((model_id, msg))
+        # 添加延迟避免HTTP 429 (5秒延迟)
+        if i < len(models) - 1:
+            print("  [等待5秒避免速率限制...]")
+            time.sleep(5)
+
+    # 统计
+    print(f"\n{'='*60}")
+    print(f"[V3-Universal] {args.task} 完成")
+    print(f"总计: {len(models)}")
+    print(f"成功: {len(success)}")
+    print(f"失败: {len(failed)}")
+    print(f"{'='*60}")
+
+    # 保存结果
+    result_dir = "/root/GraphNetExtractAgent/results"
+    os.makedirs(result_dir, exist_ok=True)
+
+    batch_suffix = f"_batch{args.batch}" if args.batch is not None else ""
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    result_file = os.path.join(
+        result_dir, f"v3_{args.task.replace('-', '_')}{batch_suffix}_{timestamp}.json"
+    )
+
+    with open(result_file, "w") as f:
+        json.dump({
+            "timestamp": timestamp,
+            "task": args.task,
+            "total": len(models),
+            "success": len(success),
+            "failed": len(failed),
+            "success_models": success,
+            "failed_models": [{"model": m, "error": e} for m, e in failed]
+        }, f, indent=2)
+
+    print(f"\n结果已保存: {result_file}")
+    return 0 if not failed else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

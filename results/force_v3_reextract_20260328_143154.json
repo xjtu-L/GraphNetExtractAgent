@@ -1,0 +1,42 @@
+{
+  "timestamp": "20260328_143154",
+  "strategy": "v3_random_init",
+  "total": 8,
+  "success_count": 0,
+  "failed_count": 8,
+  "success": [],
+  "failed": [
+    {
+      "model": "neuraly_bert-base-italian-cased-sentiment",
+      "error": "Tokenizer failed: Couldn't instantiate the backend tokenizer from one of: \n(1) a `tokenizers` library serialization file, \n(2) a slow tokenizer instance to convert or \n(3) an equivalent slow tokenizer class to instantiate and convert. \nYou need to have sentencepiece or tiktoken installed to convert a slow tokenizer to a fast one."
+    },
+    {
+      "model": "peft-internal-testing_tiny-random-BertForSequenceClassification",
+      "error": "Tokenizer failed: Couldn't instantiate the backend tokenizer from one of: \n(1) a `tokenizers` library serialization file, \n(2) a slow tokenizer instance to convert or \n(3) an equivalent slow tokenizer class to instantiate and convert. \nYou need to have sentencepiece or tiktoken installed to convert a slow tokenizer to a fast one."
+    },
+    {
+      "model": "piuba-bigdata_beto-contextualized-hate-speech",
+      "error": "Tokenizer failed: Couldn't instantiate the backend tokenizer from one of: \n(1) a `tokenizers` library serialization file, \n(2) a slow tokenizer instance to convert or \n(3) an equivalent slow tokenizer class to instantiate and convert. \nYou need to have sentencepiece or tiktoken installed to convert a slow tokenizer to a fast one."
+    },
+    {
+      "model": "sadickam_sdgBERT",
+      "error": "Tokenizer failed: Couldn't instantiate the backend tokenizer from one of: \n(1) a `tokenizers` library serialization file, \n(2) a slow tokenizer instance to convert or \n(3) an equivalent slow tokenizer class to instantiate and convert. \nYou need to have sentencepiece or tiktoken installed to convert a slow tokenizer to a fast one."
+    },
+    {
+      "model": "sentence-transformers_all-MiniLM-L6-v2",
+      "error": "Tokenizer failed: Couldn't instantiate the backend tokenizer from one of: \n(1) a `tokenizers` library serialization file, \n(2) a slow tokenizer instance to convert or \n(3) an equivalent slow tokenizer class to instantiate and convert. \nYou need to have sentencepiece or tiktoken installed to convert a slow tokenizer to a fast one."
+    },
+    {
+      "model": "sentence-transformers_paraphrase-MiniLM-L6-v2",
+      "error": "Tokenizer failed: Couldn't instantiate the backend tokenizer from one of: \n(1) a `tokenizers` library serialization file, \n(2) a slow tokenizer instance to convert or \n(3) an equivalent slow tokenizer class to instantiate and convert. \nYou need to have sentencepiece or tiktoken installed to convert a slow tokenizer to a fast one."
+    },
+    {
+      "model": "sentinet_suicidality",
+      "error": "Tokenizer failed: Couldn't instantiate the backend tokenizer from one of: \n(1) a `tokenizers` library serialization file, \n(2) a slow tokenizer instance to convert or \n(3) an equivalent slow tokenizer class to instantiate and convert. \nYou need to have sentencepiece or tiktoken installed to convert a slow tokenizer to a fast one."
+    },
+    {
+      "model": "StephanAkkerman_FinTwitBERT-sentiment",
+      "error": "Tokenizer failed: Couldn't instantiate the backend tokenizer from one of: \n(1) a `tokenizers` library serialization file, \n(2) a slow tokenizer instance to convert or \n(3) an equivalent slow tokenizer class to instantiate and convert. \nYou need to have sentencepiece or tiktoken installed to convert a slow tokenizer to a fast one."
+    }
+  ]
+}
