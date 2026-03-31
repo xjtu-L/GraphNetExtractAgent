@@ -74,3 +74,118 @@ def load_models(start_idx, end_idx):
     return models
 ```
 
+---
+
+## 6. extract.py 标准格式规范（重要）
+
+### 6.1 标准要求
+
+每个抽取成功的模型必须生成 `extract.py` 文件，格式必须统一，确保可重复执行和结果一致性。
+
+### 6.2 标准模板
+
+```python
+#!/usr/bin/env python3
+"""Extract script for {model_id}
+Task: {task_type}
+"""
+import torch
+from transformers import {model_class}, AutoConfig
+import sys, os
+sys.path.insert(0, '/root/GraphNet')
+
+def extract_model(model_path, device='cpu'):
+    config = AutoConfig.from_pretrained(model_path, trust_remote_code=True)
+    model = {model_class}.from_config(config, trust_remote_code=True)
+    model.eval()
+    try:
+        from graph_net.torch.extractor import extract
+    except ImportError:
+        print("Error: graph_net not found")
+        return None
+    vocab_size = getattr(config, 'vocab_size', 32000)
+    max_pos = getattr(config, 'max_position_embeddings', 512)
+    seq_len = min(32, max_pos)
+    input_ids = torch.randint(0, min(vocab_size, 1000), (1, seq_len))
+    try:
+        return extract(model, input_ids)
+    except Exception as e:
+        print(f"Extraction failed: {e}")
+        return None
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model-path", default=".")
+    parser.add_argument("--device", default="cpu")
+    args = parser.parse_args()
+    result = extract_model(args.model_path, args.device)
+    print("Success" if result else "Failed")
+```
+
+### 6.3 关键要素说明
+
+| 要素 | 说明 | 必须 |
+|------|------|------|
+| **Task信息** | 在docstring中标注模型任务类型 | ✅ |
+| **模型类** | 根据模型类型选择AutoModel/AutoModelForCausalLM等 | ✅ |
+| **from_config()** | 必须使用随机初始化，禁止from_pretrained()下载权重 | ✅ |
+| **input_ids构造** | 构造随机输入张量，vocab_size和seq_len从config获取 | ✅ |
+| **extract(model, input_ids)** | 正确调用方式，传入模型和输入张量 | ✅ |
+| **argparse** | 支持命令行参数--model-path和--device | ✅ |
+| **错误处理** | 包含try-except捕获异常 | ✅ |
+
+### 6.4 模型类选择指南
+
+根据模型类型选择合适的AutoModel类：
+
+| 模型特征 | 模型类 | Task类型 |
+|----------|--------|----------|
+| 基础模型 | `AutoModel` | feature-extraction |
+| 因果语言模型/GPT类 | `AutoModelForCausalLM` | text-generation |
+| 掩码语言模型/BERT类 | `AutoModelForMaskedLM` | fill-mask |
+| 序列分类 | `AutoModelForSequenceClassification` | text-classification |
+| Token分类/NER | `AutoModelForTokenClassification` | token-classification |
+| 问答模型 | `AutoModelForQuestionAnswering` | question-answering |
+| Seq2Seq/T5类 | `AutoModelForSeq2SeqLM` | text2text-generation |
+
+### 6.5 禁止事项
+
+❌ **以下写法是错误的，必须避免：**
+
+```python
+# 错误1: 使用from_pretrained()下载权重
+model = AutoModel.from_pretrained(model_path)  # ❌ 禁止
+
+# 错误2: 调用方式错误
+extract(model, model_path)  # ❌ 禁止传入路径
+
+# 错误3: 缺少input_ids构造
+return extract(model)  # ❌ 必须构造input_ids
+```
+
+✅ **正确写法：**
+
+```python
+# 正确: 使用from_config()随机初始化
+model = AutoModel.from_config(config)  # ✅
+
+# 正确: 传入构造好的input_ids
+input_ids = torch.randint(0, vocab_size, (1, seq_len))
+return extract(model, input_ids)  # ✅
+```
+
+### 6.6 验证命令
+
+```bash
+# 检查extract.py格式是否正确
+grep -l "extract(model, input_ids)" */extract.py | wc -l
+
+# 检查是否有错误格式
+grep -l "extract(model, model_path)" */extract.py
+
+# 检查是否使用了from_config()
+grep -l "from_config" */extract.py | wc -l
+```
+
+
