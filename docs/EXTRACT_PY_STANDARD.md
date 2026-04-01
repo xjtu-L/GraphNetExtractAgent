@@ -149,18 +149,146 @@ if __name__ == "__main__":
     os.chmod(extract_py_path, 0o755)
 ```
 
-## 检查命令
+## 目录结构与统计规则
 
+### 核心原则
+> **一个模型只需要一个 extract.py（在主目录），多个 subgraph 由主 extract.py 统一抽取，subgraph 目录不需要单独 extract.py。**
+
+### 正确目录结构
+```
+model_directory/                    # 模型主目录
+├── extract.py                      # 唯一的提取脚本（主目录）
+├── graph_net.json                  # 主图结构
+├── subgraph_0/                     # 子图目录
+│   └── graph_net.json              # 子图结构（由主 extract.py 生成）
+└── subgraph_1/
+    └── graph_net.json
+```
+
+### 统计规则
+| 统计项 | 计算方法 | 说明 |
+|--------|----------|------|
+| **总模型数** | 一级子目录数量 | 每个模型一个目录 |
+| **成功抽取数** | 一级子目录中有 `extract.py` 的数量 | 主目录有 extract.py 即算成功 |
+| **空目录数** | 一级子目录中没有 `extract.py` 的数量 | 需要重新抽取的模型 |
+
+### 统计命令
 ```bash
-# 统计有 extract.py 的模型数
-find /root/graphnet_workspace/huggingface/worker1 -maxdepth 2 -name "extract.py" | wc -l
+# 统计当前 Worker 的模型情况
+cd /root/graphnet_workspace/huggingface/worker1
+total=$(ls -d */ 2>/dev/null | wc -l)
+extracted=0
+for dir in */; do
+    if [ -f "${dir}extract.py" ]; then
+        extracted=$((extracted + 1))
+    fi
+done
+empty=$((total - extracted))
+echo "总目录: $total, 已抽取: $extracted, 空目录: $empty"
 
 # 检查 extract.py 格式是否正确
 grep -l "from graph_net.torch.extractor import extract" \
   /root/graphnet_workspace/huggingface/worker1/*/extract.py | wc -l
 ```
 
+### 注意事项
+- **子图目录不应包含 extract.py** - subgraph_*/ 目录只应有 graph_net.json
+- **避免重复统计** - 使用 `maxdepth 1` 或 `ls -d */` 统计一级目录
+- **所有级别 extract.py 总数 > 一级目录中有 extract.py 的数量** - 因为子图目录也可能有（错误的）extract.py
+
+## 生成 graph_hash.txt
+
+### 概述
+每个包含 `model.py` 的计算图目录都应该有一个对应的 `graph_hash.txt` 文件，用于唯一标识该计算图。
+
+### 生成方法
+
+#### 1. 使用 generate_graph_hash.py 工具
+
+```bash
+cd /root/GraphNet
+
+# 为单个 Worker 生成（仅生成缺失的）
+python tools/generate_graph_hash.py \
+  --samples-dir /root/graphnet_workspace/huggingface/worker1
+
+# 为所有 Worker 生成
+python tools/generate_graph_hash.py \
+  --samples-dir /root/graphnet_workspace/huggingface/worker1 \
+  --samples-dir /root/graphnet_workspace/huggingface/worker2
+
+# 强制重新生成（覆盖现有文件）
+python tools/generate_graph_hash.py \
+  --samples-dir /root/graphnet_workspace/huggingface \
+  --overwrite
+```
+
+#### 2. 为整个 workspace 生成
+
+```bash
+cd /root/GraphNet
+python tools/generate_graph_hash.py \
+  --samples-dir /root/graphnet_workspace \
+  --overwrite
+```
+
+#### 3. 汇总所有哈希值
+
+```bash
+cd /root/graphnet_workspace
+OUTPUT_FILE="all_graph_hashes.txt"
+
+echo "# GraphNet 所有计算图哈希汇总" > "$OUTPUT_FILE"
+echo "# 生成时间: $(date)" >> "$OUTPUT_FILE"
+echo "# 格式: 目录路径 | 哈希值" >> "$OUTPUT_FILE"
+echo "" >> "$OUTPUT_FILE"
+
+find . -name "graph_hash.txt" -type f | while read f; do
+    dir=$(dirname "$f")
+    hash=$(cat "$f")
+    echo "${dir#./} | $hash" >> "$OUTPUT_FILE"
+done
+
+echo "汇总完成: $OUTPUT_FILE"
+echo "总条目数: $(wc -l < "$OUTPUT_FILE")"
+```
+
+### 验证生成结果
+
+```bash
+cd /root/graphnet_workspace/huggingface
+
+# 统计 model.py 和 graph_hash.txt 数量
+MODEL_PY_COUNT=$(find . -name "model.py" -type f | wc -l)
+HASH_COUNT=$(find . -name "graph_hash.txt" -type f | wc -l)
+
+echo "model.py 文件总数: $MODEL_PY_COUNT"
+echo "graph_hash.txt 文件总数: $HASH_COUNT"
+
+if [ "$MODEL_PY_COUNT" -eq "$HASH_COUNT" ]; then
+    echo "✅ 完美匹配！每个 model.py 都有对应的 graph_hash.txt"
+else
+    echo "⚠️ 数量不匹配，差值: $((HASH_COUNT - MODEL_PY_COUNT))"
+fi
+```
+
+### 清理多余的 graph_hash.txt
+
+```bash
+cd /root/graphnet_workspace/huggingface
+
+find . -name "graph_hash.txt" -type f | while read f; do
+    dir=$(dirname "$f")
+    if [ ! -f "${dir}/model.py" ]; then
+        rm -f "$f"
+        echo "删除多余文件: $f"
+    fi
+done
+```
+
 ## 历史记录
 
 - **2024-03-31**: 定义标准格式，修复286个模型的extract.py
-- **标准版本**: v1.0
+- **2024-04-01**: 添加目录结构与统计规则
+- **2024-04-01**: 添加 graph_hash.txt 生成方法
+- **标准版本**: v1.2

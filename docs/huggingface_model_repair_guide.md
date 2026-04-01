@@ -348,6 +348,129 @@ with open('repair_results.json', 'w') as f:
 
 ---
 
-*文档版本：1.0*
-*最后更新：2026-03-30*
+## 六、正确识别残图的方法
+
+### 重要概念：两种正确的模型格式
+
+在判断模型是否完整时，必须认识到子图抽取有两种正确格式：
+
+| 格式 | 特征 | 适用场景 |
+|------|------|----------|
+| **格式1** | 有 `subgraph_*` 目录，子目录下有核心文件 | 大模型自动拆分子图 |
+| **格式2** | 没有 `subgraph` 目录，核心文件在主目录 | 小模型不拆分 |
+
+**两种格式都是正确的，不要因为格式不同而误判为残图！**
+
+### 残图判断标准
+
+#### 正确判断流程
+```bash
+# 1. 找到所有模型目录
+find /root/graphnet_workspace/huggingface/worker1 -mindepth 1 -maxdepth 1 -type d
+
+# 2. 判断单个模型是否完整
+# 格式1检查：subgraph_*目录下是否有model.py和graph_hash.txt
+find "${model_dir}/subgraph_0" -name "model.py" 2>/dev/null
+find "${model_dir}/subgraph_0" -name "graph_hash.txt" 2>/dev/null
+
+# 格式2检查：主目录下是否有model.py和graph_hash.txt
+find "${model_dir}" -maxdepth 1 -name "model.py" 2>/dev/null
+find "${model_dir}" -maxdepth 1 -name "graph_hash.txt" 2>/dev/null
+```
+
+#### 完整的判断脚本
+```python
+#!/usr/bin/env python3
+"""正确识别残图的脚本"""
+import os
+
+def check_model_complete(model_dir):
+    """
+    检查模型是否完整
+    返回: (is_complete, format_type)
+        is_complete: True/False
+        format_type: 1(多子图)/2(单模型)/None(残图)
+    """
+    # 检查格式1: 有subgraph_*目录
+    subgraph_dirs = [d for d in os.listdir(model_dir)
+                     if d.startswith('subgraph_') and os.path.isdir(os.path.join(model_dir, d))]
+
+    if subgraph_dirs:
+        # 格式1: 检查每个subgraph目录下是否有核心文件
+        for sg_dir in subgraph_dirs:
+            sg_path = os.path.join(model_dir, sg_dir)
+            has_model_py = os.path.exists(os.path.join(sg_path, 'model.py'))
+            has_graph_hash = os.path.exists(os.path.join(sg_path, 'graph_hash.txt'))
+
+            if not (has_model_py and has_graph_hash):
+                return False, None  # 残图
+        return True, 1
+
+    # 检查格式2: 主目录下有核心文件
+    has_model_py = os.path.exists(os.path.join(model_dir, 'model.py'))
+    has_graph_hash = os.path.exists(os.path.join(model_dir, 'graph_hash.txt'))
+    has_graph_net = os.path.exists(os.path.join(model_dir, 'graph_net.json'))
+
+    if has_model_py and has_graph_hash:
+        return True, 2
+
+    return False, None  # 残图
+
+# 统计整个目录
+base_dir = '/root/graphnet_workspace/huggingface/worker1'
+complete_format1 = 0
+complete_format2 = 0
+residual = 0
+
+for model_name in os.listdir(base_dir):
+    model_dir = os.path.join(base_dir, model_name)
+    if not os.path.isdir(model_dir):
+        continue
+
+    is_complete, fmt = check_model_complete(model_dir)
+    if is_complete:
+        if fmt == 1:
+            complete_format1 += 1
+        elif fmt == 2:
+            complete_format2 += 1
+    else:
+        residual += 1
+        print(f"残图: {model_name}")
+
+print(f"\n完整模型-格式1(多子图): {complete_format1}")
+print(f"完整模型-格式2(单模型): {complete_format2}")
+print(f"残图: {residual}")
+```
+
+### 常见误判案例
+
+#### ❌ 错误判断方式
+```bash
+# 错误：只看主目录是否有model.py
+find /root/graphnet_workspace/huggingface/worker1 -maxdepth 2 -name "model.py" | wc -l
+
+# 这种会把格式1(多子图)的完整模型误判为残图！
+```
+
+#### ✅ 正确判断方式
+```bash
+# 正确：检查格式1和格式2的所有情况
+# 格式1：多子图模型（subgraph_*目录下有核心文件）
+find /root/graphnet_workspace/huggingface/worker1 -path "*/subgraph_*/model.py" | wc -l
+
+# 格式2：单子图模型（主目录下有核心文件）
+find /root/graphnet_workspace/huggingface/worker1 -maxdepth 2 -name "model.py" | grep -v subgraph | wc -l
+```
+
+### 残图类型分类
+
+| 类型 | 特征 | 修复方法 |
+|------|------|----------|
+| **NO_SUBGRAPH** | 没有subgraph目录，也没有主目录model.py | 重新运行extract.py或重新抓取 |
+| **INCOMPLETE_SUBGRAPH** | 有subgraph目录但缺少model.py或graph_hash.txt | 运行extract.py补充缺失文件 |
+
+---
+
+*文档版本：1.1*
+*最后更新：2026-04-01*
 *作者：Claude Code Assistant*

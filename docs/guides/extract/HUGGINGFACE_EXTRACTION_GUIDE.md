@@ -17,6 +17,7 @@ GraphNet 提供了 **GraphNetAgent** 自动化管线，实现从 HuggingFace Mod
 | 输入构造 | 手动根据 forward 签名构造 | Agent 从 config.json 自动推断 |
 | 脚本生成 | 手写 | Agent 自动生成 `run_model.py` |
 | 适用场景 | 本地模型库、标准输入格式 | 海量 HF 模型、自动批量抽取 |
+| **模型类型** | CV模型为主 | **支持所有模型类型** (NLP、Vision、Speech等) |
 
 ---
 

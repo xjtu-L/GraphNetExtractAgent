@@ -6,7 +6,11 @@
 
 ## 1. 目录结构规范
 
-### 1.1 正确结构示例
+### 1.1 核心规则
+
+> **一个模型只需要一个 extract.py（在主目录），多个 subgraph 由主 extract.py 统一抽取，subgraph 目录不需要单独 extract.py。**
+
+### 1.2 正确结构示例
 
 **有子图的模型**（根目录无 model.py）：
 ```
@@ -48,6 +52,14 @@ model_name/
 | model.py 行数 | - | > 100 行 | < 50 行 |
 | subgraph_* 目录 | ✅ 存在 | ❌ 不存在 | ❌ 不存在 |
 | 完整性 | 完整 | 完整 | 残图/简化版 |
+
+### 1.3 关键规则
+
+| 规则项 | ✅ 正确 | ❌ 错误 |
+|--------|--------|--------|
+| extract.py 位置 | 主目录（唯一） | subgraph_*/extract.py |
+| subgraph 目录内容 | graph_net.json 等元数据 | model.py、extract.py |
+| 统计模型数 | 一级子目录中有 extract.py | 所有级别的 extract.py 总数 |
 
 ---
 
@@ -341,4 +353,5 @@ def verify_extraction(output_dir):
 
 ---
 
-*最后更新：2026-03-30*
+*最后更新：2026-04-01*
+- 添加核心规则：一个模型只需要一个 extract.py
