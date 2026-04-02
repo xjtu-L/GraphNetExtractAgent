@@ -21,10 +21,13 @@ docs/
 ├── CONTRIBUTE_TUTORIAL.md          # 核心贡献教程（从此开始）
 ├── CONTRIBUTE_TUTORIAL_cn.md       # 中文贡献教程
 ├── guides/
+│   ├── WORKER_CHECKPOINT_GUIDE.md   # 【新增】Worker读档检查指南
 │   ├── extract/                    # 提取相关文档
 │   │   ├── EXTRACTION_EXPLAINED.md
+│   │   ├── extraction_issues_and_solutions.md  # 【新增】抽取问题与解决方案
 │   │   ├── HUGGINGFACE_EXTRACTION_GUIDE.md
 │   │   ├── multi_worker_collaboration.md
+│   │   ├── NESTED_DIRECTORY_ISSUE.md           # 【新增】嵌套目录专项记录
 │   │   ├── PARALLEL_EXECUTION_BEST_PRACTICES.md  # 【新增】并行执行最佳实践
 │   │   ├── quick_reference.md
 │   │   ├── WORKER_DIRECTORY_GUIDE.md  # 【新增】Worker目录组织规范
@@ -66,6 +69,12 @@ docs/
 ### 我要了解目录组织规范
 → 查看 [guides/extract/WORKER_DIRECTORY_GUIDE.md](guides/extract/WORKER_DIRECTORY_GUIDE.md) - Worker目录结构和组织方式
 
+### 我要了解抽取常见问题与解决方案
+→ 查看 [guides/extract/extraction_issues_and_solutions.md](guides/extract/extraction_issues_and_solutions.md) - 6大问题发现机制与处理经验（嵌套目录、空目录、进程监控等）
+
+### 我要检查任务状态或恢复中断进程
+→ 查看 [guides/WORKER_CHECKPOINT_GUIDE.md](guides/WORKER_CHECKPOINT_GUIDE.md) - Worker读档检查指南（进程状态、批次进度、恢复方法）
+
 ### 我要了解残图修复（辅助参考）
 → 查看 [guides/repair/](guides/repair/)
 
@@ -86,4 +95,4 @@ docs/
 
 ---
 
-*最后更新：2026-03-30*
+*最后更新：2026-04-02*
