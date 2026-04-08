@@ -175,7 +175,7 @@ model_directory/                    # 模型主目录
 ### 统计命令
 ```bash
 # 统计当前 Worker 的模型情况
-cd /root/graphnet_workspace/huggingface/worker1
+cd /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1
 total=$(ls -d */ 2>/dev/null | wc -l)
 extracted=0
 for dir in */; do
@@ -188,7 +188,7 @@ echo "总目录: $total, 已抽取: $extracted, 空目录: $empty"
 
 # 检查 extract.py 格式是否正确
 grep -l "from graph_net.torch.extractor import extract" \
-  /root/graphnet_workspace/huggingface/worker1/*/extract.py | wc -l
+  /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1/*/extract.py | wc -l
 ```
 
 ### 注意事项
@@ -210,16 +210,16 @@ cd /root/GraphNet
 
 # 为单个 Worker 生成（仅生成缺失的）
 python tools/generate_graph_hash.py \
-  --samples-dir /root/graphnet_workspace/huggingface/worker1
+  --samples-dir /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1
 
 # 为所有 Worker 生成
 python tools/generate_graph_hash.py \
-  --samples-dir /root/graphnet_workspace/huggingface/worker1 \
-  --samples-dir /root/graphnet_workspace/huggingface/worker2
+  --samples-dir /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 \
+  --samples-dir /ssd1/liangtai-work/graphnet_workspace/huggingface/worker2
 
 # 强制重新生成（覆盖现有文件）
 python tools/generate_graph_hash.py \
-  --samples-dir /root/graphnet_workspace/huggingface \
+  --samples-dir /ssd1/liangtai-work/graphnet_workspace/huggingface \
   --overwrite
 ```
 
@@ -228,14 +228,14 @@ python tools/generate_graph_hash.py \
 ```bash
 cd /root/GraphNet
 python tools/generate_graph_hash.py \
-  --samples-dir /root/graphnet_workspace \
+  --samples-dir /ssd1/liangtai-work/graphnet_workspace \
   --overwrite
 ```
 
 #### 3. 汇总所有哈希值
 
 ```bash
-cd /root/graphnet_workspace
+cd /ssd1/liangtai-work/graphnet_workspace
 OUTPUT_FILE="all_graph_hashes.txt"
 
 echo "# GraphNet 所有计算图哈希汇总" > "$OUTPUT_FILE"
@@ -256,7 +256,7 @@ echo "总条目数: $(wc -l < "$OUTPUT_FILE")"
 ### 验证生成结果
 
 ```bash
-cd /root/graphnet_workspace/huggingface
+cd /ssd1/liangtai-work/graphnet_workspace/huggingface
 
 # 统计 model.py 和 graph_hash.txt 数量
 MODEL_PY_COUNT=$(find . -name "model.py" -type f | wc -l)
@@ -275,7 +275,7 @@ fi
 ### 清理多余的 graph_hash.txt
 
 ```bash
-cd /root/graphnet_workspace/huggingface
+cd /ssd1/liangtai-work/graphnet_workspace/huggingface
 
 find . -name "graph_hash.txt" -type f | while read f; do
     dir=$(dirname "$f")

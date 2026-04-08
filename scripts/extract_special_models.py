@@ -13,7 +13,7 @@ import shutil
 import subprocess
 import time
 
-os.environ.setdefault("GRAPH_NET_EXTRACT_WORKSPACE", "/root/graphnet_workspace/huggingface/text-classification")
+os.environ.setdefault("GRAPH_NET_EXTRACT_WORKSPACE", "/ssd1/liangtai-work/graphnet_workspace/huggingface/text-classification")
 os.environ.setdefault("HF_ENDPOINT", "https://hf-mirror.com")
 
 sys.path.insert(0, "/root/GraphNet")

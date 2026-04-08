@@ -366,7 +366,7 @@ with open('repair_results.json', 'w') as f:
 #### 正确判断流程
 ```bash
 # 1. 找到所有模型目录
-find /root/graphnet_workspace/huggingface/worker1 -mindepth 1 -maxdepth 1 -type d
+find /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 -mindepth 1 -maxdepth 1 -type d
 
 # 2. 判断单个模型是否完整
 # 格式1检查：subgraph_*目录下是否有model.py和graph_hash.txt
@@ -417,7 +417,7 @@ def check_model_complete(model_dir):
     return False, None  # 残图
 
 # 统计整个目录
-base_dir = '/root/graphnet_workspace/huggingface/worker1'
+base_dir = '/ssd1/liangtai-work/graphnet_workspace/huggingface/worker1'
 complete_format1 = 0
 complete_format2 = 0
 residual = 0
@@ -447,7 +447,7 @@ print(f"残图: {residual}")
 #### ❌ 错误判断方式
 ```bash
 # 错误：只看主目录是否有model.py
-find /root/graphnet_workspace/huggingface/worker1 -maxdepth 2 -name "model.py" | wc -l
+find /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 -maxdepth 2 -name "model.py" | wc -l
 
 # 这种会把格式1(多子图)的完整模型误判为残图！
 ```
@@ -456,10 +456,10 @@ find /root/graphnet_workspace/huggingface/worker1 -maxdepth 2 -name "model.py" |
 ```bash
 # 正确：检查格式1和格式2的所有情况
 # 格式1：多子图模型（subgraph_*目录下有核心文件）
-find /root/graphnet_workspace/huggingface/worker1 -path "*/subgraph_*/model.py" | wc -l
+find /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 -path "*/subgraph_*/model.py" | wc -l
 
 # 格式2：单子图模型（主目录下有核心文件）
-find /root/graphnet_workspace/huggingface/worker1 -maxdepth 2 -name "model.py" | grep -v subgraph | wc -l
+find /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 -maxdepth 2 -name "model.py" | grep -v subgraph | wc -l
 ```
 
 ### 残图类型分类

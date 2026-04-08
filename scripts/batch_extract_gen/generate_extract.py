@@ -77,7 +77,7 @@ if __name__ == "__main__":
 
 def extract_model_info(model_dir: str):
     """从目录路径提取模型ID和任务类型"""
-    # 目录格式: /root/graphnet_workspace/huggingface/worker2/{task}/{model_id}/subgraph_*
+    # 目录格式: /ssd1/liangtai-work/graphnet_workspace/huggingface/worker2/{task}/{model_id}/subgraph_*
     parts = model_dir.split('/')
 
     # 找到worker2后的索引

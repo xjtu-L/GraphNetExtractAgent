@@ -46,7 +46,7 @@ export https_proxy=http://agent.baidu.com:8891
 ### 2.3 环境变量
 
 ```bash
-export GRAPH_NET_EXTRACT_WORKSPACE=/root/graphnet_workspace
+export GRAPH_NET_EXTRACT_WORKSPACE=/ssd1/liangtai-work/graphnet_workspace
 ```
 
 已写入 `/root/.bashrc`，新 shell 自动生效。
@@ -235,7 +235,7 @@ cd /root/GraphNet && pip install -e ".[agent]"
 
 ```python
 import json
-path = f'/root/graphnet_workspace/{model_name}/graph_net.json'
+path = f'/ssd1/liangtai-work/graphnet_workspace/{model_name}/graph_net.json'
 with open(path) as f:
     data = json.load(f)
 data['source'] = 'torchvision'
@@ -444,7 +444,7 @@ P3 sub-agent 修改了两个 GraphNet 源文件：
 
 ```bash
 # 环境设置
-export GRAPH_NET_EXTRACT_WORKSPACE=/root/graphnet_workspace
+export GRAPH_NET_EXTRACT_WORKSPACE=/ssd1/liangtai-work/graphnet_workspace
 export http_proxy=http://agent.baidu.com:8891
 export https_proxy=http://agent.baidu.com:8891
 

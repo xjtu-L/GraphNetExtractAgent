@@ -111,10 +111,10 @@ if __name__ == "__main__":
 #### 发现机制
 ```bash
 # 查找空目录
-find /root/graphnet_workspace/huggingface/worker2 -maxdepth 1 -type d -empty
+find /ssd1/liangtai-work/graphnet_workspace/huggingface/worker2 -maxdepth 1 -type d -empty
 
 # 统计空目录数量
-find /root/graphnet_workspace/huggingface/worker2 -maxdepth 1 -type d -empty | wc -l
+find /ssd1/liangtai-work/graphnet_workspace/huggingface/worker2 -maxdepth 1 -type d -empty | wc -l
 ```
 
 #### 根本原因
@@ -270,16 +270,16 @@ done
 
 ```bash
 # 检查空目录
-find /root/graphnet_workspace/huggingface/worker2 -maxdepth 1 -type d -empty | wc -l
+find /ssd1/liangtai-work/graphnet_workspace/huggingface/worker2 -maxdepth 1 -type d -empty | wc -l
 
 # 检查嵌套目录
-for dir in /root/graphnet_workspace/huggingface/worker2/*/; do
+for dir in /ssd1/liangtai-work/graphnet_workspace/huggingface/worker2/*/; do
     model=$(basename "$dir")
     [ -d "$dir/$model" ] && echo "$model"
 done
 
 # 检查缺少 extract.py 的模型
-for dir in /root/graphnet_workspace/huggingface/worker2/*/; do
+for dir in /ssd1/liangtai-work/graphnet_workspace/huggingface/worker2/*/; do
     [ -f "$dir/extract.py" ] || echo "缺失: $(basename "$dir")"
 done
 

@@ -18,7 +18,7 @@ import shutil
 
 
 def fix_torchvision_models():
-    workspace = os.environ.get("GRAPH_NET_EXTRACT_WORKSPACE", "/root/graphnet_workspace")
+    workspace = os.environ.get("GRAPH_NET_EXTRACT_WORKSPACE", "/ssd1/liangtai-work/graphnet_workspace")
 
     # 创建 torchvision 子目录
     torchvision_dir = os.path.join(workspace, "torchvision")

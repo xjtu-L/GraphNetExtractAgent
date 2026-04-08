@@ -10,7 +10,7 @@
     python validate_sample.py --model swin_s swin_t
 
     # 指定 workspace 路径
-    python validate_sample.py --model resnet18 --workspace /root/graphnet_workspace
+    python validate_sample.py --model resnet18 --workspace /ssd1/liangtai-work/graphnet_workspace
 
     # 跳过冗余检查
     python validate_sample.py --model resnet18 --no-check-redundancy

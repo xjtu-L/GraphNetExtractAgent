@@ -52,7 +52,7 @@ def safe_model_name(model_id):
     return model_id.replace("/", "_").replace("-", "_")
 
 def get_workspace(task_type):
-    base = "/root/graphnet_workspace/huggingface"
+    base = "/ssd1/liangtai-work/graphnet_workspace/huggingface"
     return os.path.join(base, task_type)
 
 def get_model_class(task_type):

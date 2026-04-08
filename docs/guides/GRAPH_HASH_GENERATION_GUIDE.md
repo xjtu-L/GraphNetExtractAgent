@@ -25,14 +25,14 @@ python tools/generate_graph_hash.py \
 ```bash
 cd /root/GraphNet
 python tools/generate_graph_hash.py \
-  --samples-dir /root/graphnet_workspace/huggingface/worker1/feature-extraction
+  --samples-dir /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1/feature-extraction
 ```
 
 ### 3. 遍历多个任务类型生成
 
 ```bash
 cd /root/GraphNet
-for dir in /root/graphnet_workspace/huggingface/worker1/*/; do
+for dir in /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1/*/; do
   [ -d "$dir" ] || continue
   task=$(basename "$dir")
   echo "生成 $task 的 hash..."
@@ -83,10 +83,10 @@ kill -TERM <PID>
 # 生成 graph_hash.txt
 cd /root/GraphNet
 python tools/generate_graph_hash.py \
-  --samples-dir /root/graphnet_workspace/huggingface/worker1/feature-extraction
+  --samples-dir /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1/feature-extraction
 
 # 验证结果
-find /root/graphnet_workspace/huggingface/worker1/feature-extraction/ \
+find /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1/feature-extraction/ \
   -name "graph_hash.txt" | wc -l
 # 输出: 405
 ```
@@ -96,7 +96,7 @@ find /root/graphnet_workspace/huggingface/worker1/feature-extraction/ \
 ```bash
 cd /root/GraphNet
 
-for dir in /root/graphnet_workspace/huggingface/worker1/*/; do
+for dir in /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1/*/; do
   [ -d "$dir" ] || continue
   task=$(basename "$dir")
   count=$(find "$dir" -name "graph_hash.txt" 2>/dev/null | wc -l)

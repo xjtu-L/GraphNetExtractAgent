@@ -75,7 +75,7 @@ model = AutoModel.from_pretrained(model_id)  # ❌ 禁止!
 ## 文件位置
 
 - 详细文档: `/root/GraphNetExtractAgent/docs/incomplete_model_repair_guide.md`
-- 修复脚本: `/root/graphnet_workspace/huggingface/repair_from_json.py`
+- 修复脚本: `/ssd1/liangtai-work/graphnet_workspace/huggingface/repair_from_json.py`
 - 残图列表: `/work/graphnet_workspace/incomplete_for_worker2.txt`
 
 ---

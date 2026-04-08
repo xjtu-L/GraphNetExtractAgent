@@ -80,7 +80,7 @@ model_name/
 **问题模型**：`katuni4ka/tiny-random-qwen3`
 
 ```python
-# /root/graphnet_workspace/.../katuni4ka_tiny-random-qwen3/model.py
+# /ssd1/liangtai-work/graphnet_workspace/.../katuni4ka_tiny-random-qwen3/model.py
 # 只有 18 行！这是一个 LayerNorm 子图
 
 class GraphModule(torch.nn.Module):
@@ -114,7 +114,7 @@ katuni4ka_tiny-random-qwen3/
 
 ```bash
 # 找出所有根目录 model.py 行数 < 50 的模型（疑似残图）
-find /root/graphnet_workspace/huggingface -name "model.py" -type f | while read f; do
+find /ssd1/liangtai-work/graphnet_workspace/huggingface -name "model.py" -type f | while read f; do
   dir=$(dirname "$f")
   # 跳过 subgraph 目录下的 model.py
   if [[ "$dir" != *subgraph_* ]]; then
@@ -195,7 +195,7 @@ def find_residual_models(workspace):
     return residuals
 
 # 使用
-residuals = find_residual_models("/root/graphnet_workspace/huggingface")
+residuals = find_residual_models("/ssd1/liangtai-work/graphnet_workspace/huggingface")
 print(f"发现 {len(residuals)} 个残图模型")
 ```
 
@@ -205,7 +205,7 @@ print(f"发现 {len(residuals)} 个残图模型")
 
 ```bash
 # 对于 katuni4ka_tiny-random-qwen3
-cd /root/graphnet_workspace/huggingface/text-generation/katuni4ka_tiny-random-qwen3
+cd /ssd1/liangtai-work/graphnet_workspace/huggingface/text-generation/katuni4ka_tiny-random-qwen3
 
 # 创建 subgraph_0 目录
 mkdir -p subgraph_0
@@ -258,7 +258,7 @@ print("抽取完成！")
 #!/bin/bash
 # 批量将残图移动到 subgraph_0
 
-WORKSPACE="/root/graphnet_workspace/huggingface"
+WORKSPACE="/ssd1/liangtai-work/graphnet_workspace/huggingface"
 THRESHOLD=50  # model.py 行数阈值
 
 find "$WORKSPACE" -name "model.py" -type f | while read f; do

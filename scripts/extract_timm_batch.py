@@ -22,7 +22,7 @@ import timm
 from datetime import datetime
 
 # 设置环境变量
-os.environ.setdefault("GRAPH_NET_EXTRACT_WORKSPACE", "/root/graphnet_workspace/timm")
+os.environ.setdefault("GRAPH_NET_EXTRACT_WORKSPACE", "/ssd1/liangtai-work/graphnet_workspace/timm")
 
 from graph_net.torch.extractor import extract
 

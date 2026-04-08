@@ -88,25 +88,25 @@ def infer_task_type(model_name):
 **Worker0 抓取模型时**：
 ```bash
 # 输出路径设置为 Worker0 的目录
-export GRAPH_NET_EXTRACT_WORKSPACE="/root/graphnet_workspace/huggingface/worker0/text-generation"
+export GRAPH_NET_EXTRACT_WORKSPACE="/ssd1/liangtai-work/graphnet_workspace/huggingface/worker0/text-generation"
 
 # 抓取模型
 python extract_script.py facebook/xmod-base
 
 # 结果位置
-# /root/graphnet_workspace/huggingface/worker0/text-generation/facebook_xmod-base/
+# /ssd1/liangtai-work/graphnet_workspace/huggingface/worker0/text-generation/facebook_xmod-base/
 ```
 
 **Worker1 抓取模型时**：
 ```bash
 # 输出路径设置为 Worker1 的目录
-export GRAPH_NET_EXTRACT_WORKSPACE="/root/graphnet_workspace/huggingface/worker1/text-generation"
+export GRAPH_NET_EXTRACT_WORKSPACE="/ssd1/liangtai-work/graphnet_workspace/huggingface/worker1/text-generation"
 
 # 抓取模型
 python extract_script.py Xenova/ernie-2.0-large-en
 
 # 结果位置
-# /root/graphnet_workspace/huggingface/worker1/text-generation/Xenova_ernie-2.0-large-en/
+# /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1/text-generation/Xenova_ernie-2.0-large-en/
 ```
 
 ### 为什么要这样组织
@@ -143,11 +143,11 @@ huggingface/
 pkill -f extract
 
 # 2. 创建新的Worker目录结构
-mkdir -p /root/graphnet_workspace/huggingface/worker{N}/{text-generation,text-classification,fill-mask,feature-extraction}
+mkdir -p /ssd1/liangtai-work/graphnet_workspace/huggingface/worker{N}/{text-generation,text-classification,fill-mask,feature-extraction}
 
 # 3. 将已抓取的模型移动到自己的Worker目录（可选）
-mv /root/graphnet_workspace/huggingface/text-generation/model1 \
-   /root/graphnet_workspace/huggingface/worker0/text-generation/
+mv /ssd1/liangtai-work/graphnet_workspace/huggingface/text-generation/model1 \
+   /ssd1/liangtai-work/graphnet_workspace/huggingface/worker0/text-generation/
 
 # 4. 更新脚本中的输出路径
 sed -i 's|huggingface/text-generation|huggingface/worker0/text-generation|g' extract_script.py

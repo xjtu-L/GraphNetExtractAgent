@@ -3,7 +3,7 @@
 T2: torchvision Vision Transformer 补全 - swin_s, swin_t 抽取脚本
 
 用法:
-    export GRAPH_NET_EXTRACT_WORKSPACE=/root/graphnet_workspace
+    export GRAPH_NET_EXTRACT_WORKSPACE=/ssd1/liangtai-work/graphnet_workspace
     export http_proxy=http://agent.baidu.com:8891
     export https_proxy=http://agent.baidu.com:8891
     python extract_swin.py

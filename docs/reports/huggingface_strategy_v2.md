@@ -91,7 +91,7 @@ def discover_and_extract_loop(task_type, batch_size=100):
 | 检查点 | 数据源 | 检查时机 |
 |--------|--------|----------|
 | samples/ 目录 | `/root/GraphNet/samples/transformers-auto-model/` | 抽取前 |
-| workspace/ 目录 | `/root/graphnet_workspace/huggingface/` | 抽取前 |
+| workspace/ 目录 | `/ssd1/liangtai-work/graphnet_workspace/huggingface/` | 抽取前 |
 | 已抽取内存集合 | Python set() | 运行时 |
 
 ### 2.2 去重逻辑
@@ -112,7 +112,7 @@ class DeduplicationService:
             self.extracted.add(name)  # 格式: org_model
 
         # workspace 目录
-        ws_dir = "/root/graphnet_workspace/huggingface"
+        ws_dir = "/ssd1/liangtai-work/graphnet_workspace/huggingface"
         for name in os.listdir(ws_dir):
             self.extracted.add(name)
 
@@ -165,7 +165,7 @@ orchestrator (pane 0)
 
 ```python
 # 共享状态文件
-SHARED_STATE = "/root/graphnet_workspace/huggingface/shared_state.json"
+SHARED_STATE = "/ssd1/liangtai-work/graphnet_workspace/huggingface/shared_state.json"
 
 class Coordinator:
     """协调器"""
@@ -228,7 +228,7 @@ from datetime import datetime
 
 os.environ.setdefault("http_proxy", "http://agent.baidu.com:8891")
 os.environ.setdefault("https_proxy", "http://agent.baidu.com:8891")
-os.environ.setdefault("GRAPH_NET_EXTRACT_WORKSPACE", "/root/graphnet_workspace/huggingface")
+os.environ.setdefault("GRAPH_NET_EXTRACT_WORKSPACE", "/ssd1/liangtai-work/graphnet_workspace/huggingface")
 
 from huggingface_hub import HfApi
 from graph_net.agent import GraphNetAgent
@@ -357,7 +357,7 @@ def main():
     parser.add_argument("--task", required=True)
     parser.add_argument("--limit", type=int, default=100)
     parser.add_argument("--agent-id", default="agent-default")
-    parser.add_argument("--workspace", default="/root/graphnet_workspace/huggingface")
+    parser.add_argument("--workspace", default="/ssd1/liangtai-work/graphnet_workspace/huggingface")
     args = parser.parse_args()
 
     extractor = TaskExtractor(
@@ -421,7 +421,7 @@ python extract_by_task.py --task fill-mask --limit 500 --agent-id agent-fm &
 
 ```bash
 # 并行验证
-for dir in /root/graphnet_workspace/huggingface/*/; do
+for dir in /ssd1/liangtai-work/graphnet_workspace/huggingface/*/; do
     python -m graph_net.torch.validate --model-path "$dir" --no-check-redundancy &
 done
 ```
@@ -431,7 +431,7 @@ done
 ## 六、产出物
 
 ```
-/root/graphnet_workspace/huggingface/
+/ssd1/liangtai-work/graphnet_workspace/huggingface/
 ├── STRATEGY_V2.md               # 本文档
 ├── shared_state.json            # 共享状态
 ├── extract_by_task.py           # 单类别抽取脚本

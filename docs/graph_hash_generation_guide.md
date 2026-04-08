@@ -28,20 +28,20 @@ python tools/generate_graph_hash.py --samples-dir <目标目录> [--overwrite] [
 #### 1. 首次生成（跳过已存在的）
 ```bash
 python tools/generate_graph_hash.py \
-    --samples-dir /root/graphnet_workspace/huggingface/worker1
+    --samples-dir /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1
 ```
 
 #### 2. 强制重新生成所有（覆盖模式）
 ```bash
 python tools/generate_graph_hash.py \
-    --samples-dir /root/graphnet_workspace/huggingface/worker1 \
+    --samples-dir /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 \
     --overwrite
 ```
 
 #### 3. 试运行（查看会修改哪些文件）
 ```bash
 python tools/generate_graph_hash.py \
-    --samples-dir /root/graphnet_workspace/huggingface/worker1 \
+    --samples-dir /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 \
     --dry-run
 ```
 
@@ -52,7 +52,7 @@ python tools/generate_graph_hash.py \
 for dir in worker1 worker2; do
     echo "Processing $dir..."
     python tools/generate_graph_hash.py \
-        --samples-dir /root/graphnet_workspace/huggingface/$dir \
+        --samples-dir /ssd1/liangtai-work/graphnet_workspace/huggingface/$dir \
         --overwrite
 done
 ```
@@ -83,10 +83,10 @@ Written: 3740, Skipped: 0, Errors: 0
 
 ```bash
 # 统计 graph_hash.txt 数量
-find /root/graphnet_workspace/huggingface/worker1 -name "graph_hash.txt" | wc -l
+find /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 -name "graph_hash.txt" | wc -l
 
 # 对比 model.py 数量
-find /root/graphnet_workspace/huggingface/worker1 -name "model.py" | wc -l
+find /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 -name "model.py" | wc -l
 
 # 查看某个 graph_hash.txt 内容
 cat /path/to/model/subgraph_0/graph_hash.txt
@@ -103,7 +103,7 @@ cat /path/to/model/subgraph_0/graph_hash.txt
 解决方法：
 ```bash
 # 检查空文件
-find /root/graphnet_workspace/huggingface/worker1 -name "model.py" -size 0
+find /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 -name "model.py" -size 0
 
 # 修复后重新生成
 python tools/generate_graph_hash.py --samples-dir <目录> --overwrite
@@ -114,7 +114,7 @@ python tools/generate_graph_hash.py --samples-dir <目录> --overwrite
 解决方法：
 ```bash
 # 确保目录权限正确
-chmod -R 755 /root/graphnet_workspace/huggingface/worker1
+chmod -R 755 /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1
 
 # 重新运行
 python tools/generate_graph_hash.py --samples-dir <目录> --overwrite

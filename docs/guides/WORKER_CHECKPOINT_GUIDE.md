@@ -26,10 +26,10 @@ done
 ### 预期输出示例
 
 ```
-PID 161386: --start-idx 0 --end-idx 20000  -> /root/graphnet_workspace/huggingface/worker1
-PID 161390: --start-idx 20000 --end-idx 40000  -> /root/graphnet_workspace/huggingface/worker1
-PID 161403: --start-idx 40000 --end-idx 60000  -> /root/graphnet_workspace/huggingface/worker1
-PID 161420: --start-idx 60000 --end-idx 74860  -> /root/graphnet_workspace/huggingface/worker1
+PID 161386: --start-idx 0 --end-idx 20000  -> /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1
+PID 161390: --start-idx 20000 --end-idx 40000  -> /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1
+PID 161403: --start-idx 40000 --end-idx 60000  -> /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1
+PID 161420: --start-idx 60000 --end-idx 74860  -> /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1
 
 Worker1进程数: 4
 ```
@@ -124,13 +124,13 @@ tail -20 /tmp/w1_60k_74k.log  # 60000-74860批次
 
 ```bash
 # Worker1 模型目录数
-find /root/graphnet_workspace/huggingface/worker1 -mindepth 1 -maxdepth 1 -type d ! -empty | wc -l
+find /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 -mindepth 1 -maxdepth 1 -type d ! -empty | wc -l
 
 # Worker1 计算图数量
-find /root/graphnet_workspace/huggingface/worker1 -name "graph_hash.txt" | wc -l
+find /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 -name "graph_hash.txt" | wc -l
 
 # 一行输出
-echo "Worker1: 目录=$(find /root/graphnet_workspace/huggingface/worker1 -mindepth 1 -maxdepth 1 -type d ! -empty | wc -l) 计算图=$(find /root/graphnet_workspace/huggingface/worker1 -name 'graph_hash.txt' | wc -l)"
+echo "Worker1: 目录=$(find /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 -mindepth 1 -maxdepth 1 -type d ! -empty | wc -l) 计算图=$(find /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 -name 'graph_hash.txt' | wc -l)"
 ```
 
 ---
@@ -178,10 +178,10 @@ sed -n '74861p' /root/GraphNetExtractAgent/data/model_lists/our_models_300k.txt 
 
 | 目录 | 用途 |
 |------|------|
-| `/root/graphnet_workspace/huggingface/worker1` | Worker1 输出目录 |
-| `/root/graphnet_workspace/huggingface/worker2` | Worker2 输出目录 |
-| `/root/graphnet_workspace/hash_analysis/` | Hash 分析结果 |
-| `/root/graphnet_workspace/hash_collection/` | 收集的完整 hash 集合 |
+| `/ssd1/liangtai-work/graphnet_workspace/huggingface/worker1` | Worker1 输出目录 |
+| `/ssd1/liangtai-work/graphnet_workspace/huggingface/worker2` | Worker2 输出目录 |
+| `/ssd1/liangtai-work/graphnet_workspace/hash_analysis/` | Hash 分析结果 |
+| `/ssd1/liangtai-work/graphnet_workspace/hash_collection/` | 收集的完整 hash 集合 |
 
 ---
 
@@ -225,7 +225,7 @@ sleep 2 && pgrep -f "monitor_extraction.py"
 
 ```bash
 # 手动启动补充批次
-python3 /root/extract_from_model_list.py --start-idx <idx> --end-idx <idx+300> --output-dir /root/graphnet_workspace/huggingface/worker2
+python3 /root/extract_from_model_list.py --start-idx <idx> --end-idx <idx+300> --output-dir /ssd1/liangtai-work/graphnet_workspace/huggingface/worker2
 ```
 
 ### 场景三：fill-mask 重新抽取中断
@@ -235,7 +235,7 @@ python3 /root/extract_from_model_list.py --start-idx <idx> --end-idx <idx+300> -
 ps aux | grep "extract_from_model_list.py" | grep fill-mask
 
 # 2. 清理空目录（可选）
-find /root/graphnet_workspace/huggingface/fill-mask -type d -empty -delete
+find /ssd1/liangtai-work/graphnet_workspace/huggingface/fill-mask -type d -empty -delete
 
 # 3. 重新启动
 mkdir -p /tmp/reextract_fill_mask_logs
@@ -255,16 +255,16 @@ export https_proxy=http://agent.baidu.com:8891
 export HF_ENDPOINT=https://hf-mirror.com
 
 # 启动4个批次
-nohup python3 /root/extract_from_model_list.py --start-idx 0 --end-idx 20000 --output-dir /root/graphnet_workspace/huggingface/worker1 > /tmp/w1_0_20k.log 2>&1 &
+nohup python3 /root/extract_from_model_list.py --start-idx 0 --end-idx 20000 --output-dir /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 > /tmp/w1_0_20k.log 2>&1 &
 echo "启动批次 0-20000, PID: $!"
 
-nohup python3 /root/extract_from_model_list.py --start-idx 20000 --end-idx 40000 --output-dir /root/graphnet_workspace/huggingface/worker1 > /tmp/w1_20k_40k.log 2>&1 &
+nohup python3 /root/extract_from_model_list.py --start-idx 20000 --end-idx 40000 --output-dir /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 > /tmp/w1_20k_40k.log 2>&1 &
 echo "启动批次 20000-40000, PID: $!"
 
-nohup python3 /root/extract_from_model_list.py --start-idx 40000 --end-idx 60000 --output-dir /root/graphnet_workspace/huggingface/worker1 > /tmp/w1_40k_60k.log 2>&1 &
+nohup python3 /root/extract_from_model_list.py --start-idx 40000 --end-idx 60000 --output-dir /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 > /tmp/w1_40k_60k.log 2>&1 &
 echo "启动批次 40000-60000, PID: $!"
 
-nohup python3 /root/extract_from_model_list.py --start-idx 60000 --end-idx 74860 --output-dir /root/graphnet_workspace/huggingface/worker1 > /tmp/w1_60k_74k.log 2>&1 &
+nohup python3 /root/extract_from_model_list.py --start-idx 60000 --end-idx 74860 --output-dir /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 > /tmp/w1_60k_74k.log 2>&1 &
 echo "启动批次 60000-74860, PID: $!"
 
 sleep 2
@@ -278,7 +278,7 @@ echo "Worker1进程数: $(ps aux | grep extract_from_model_list | grep worker1 |
 nohup python3 /root/extract_from_model_list.py \
   --start-idx 0 \
   --end-idx 20000 \
-  --output-dir /root/graphnet_workspace/huggingface/worker1 \
+  --output-dir /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 \
   > /tmp/w1_0_20k.log 2>&1 &
 ```
 
@@ -292,9 +292,9 @@ export http_proxy=http://agent.baidu.com:8891
 export https_proxy=http://agent.baidu.com:8891
 export HF_ENDPOINT=https://hf-mirror.com
 
-nohup python3 /root/extract_from_model_list.py --start-idx 74861 --end-idx 100000 --output-dir /root/graphnet_workspace/huggingface/worker2 > /tmp/w2_74k_100k.log 2>&1 &
-nohup python3 /root/extract_from_model_list.py --start-idx 100000 --end-idx 125000 --output-dir /root/graphnet_workspace/huggingface/worker2 > /tmp/w2_100k_125k.log 2>&1 &
-nohup python3 /root/extract_from_model_list.py --start-idx 125000 --end-idx 149719 --output-dir /root/graphnet_workspace/huggingface/worker2 > /tmp/w2_125k_149k.log 2>&1 &
+nohup python3 /root/extract_from_model_list.py --start-idx 74861 --end-idx 100000 --output-dir /ssd1/liangtai-work/graphnet_workspace/huggingface/worker2 > /tmp/w2_74k_100k.log 2>&1 &
+nohup python3 /root/extract_from_model_list.py --start-idx 100000 --end-idx 125000 --output-dir /ssd1/liangtai-work/graphnet_workspace/huggingface/worker2 > /tmp/w2_100k_125k.log 2>&1 &
+nohup python3 /root/extract_from_model_list.py --start-idx 125000 --end-idx 149719 --output-dir /ssd1/liangtai-work/graphnet_workspace/huggingface/worker2 > /tmp/w2_125k_149k.log 2>&1 &
 ```
 
 ### 验证恢复成功
@@ -374,7 +374,7 @@ CHECK_INTERVAL = 60       # 检查间隔（秒）
 BATCH_SIZE = 300          # 每批次模型数
 TOTAL_MODELS = 149719     # 总模型数
 MODEL_LIST_FILE = "/root/GraphNetExtractAgent/data/model_lists/our_models_300k.txt"
-OUTPUT_DIR = "/root/graphnet_workspace/huggingface/worker2"
+OUTPUT_DIR = "/ssd1/liangtai-work/graphnet_workspace/huggingface/worker2"
 ```
 
 ---
@@ -431,10 +431,10 @@ export http_proxy=http://agent.baidu.com:8891
 export https_proxy=http://agent.baidu.com:8891
 export HF_ENDPOINT=https://hf-mirror.com
 
-nohup python3 /root/extract_from_model_list.py --start-idx 0 --end-idx 20000 --output-dir /root/graphnet_workspace/huggingface/worker1 > /tmp/w1_0_20k.log 2>&1 &
-nohup python3 /root/extract_from_model_list.py --start-idx 20000 --end-idx 40000 --output-dir /root/graphnet_workspace/huggingface/worker1 > /tmp/w1_20k_40k.log 2>&1 &
-nohup python3 /root/extract_from_model_list.py --start-idx 40000 --end-idx 60000 --output-dir /root/graphnet_workspace/huggingface/worker1 > /tmp/w1_40k_60k.log 2>&1 &
-nohup python3 /root/extract_from_model_list.py --start-idx 60000 --end-idx 74860 --output-dir /root/graphnet_workspace/huggingface/worker1 > /tmp/w1_60k_74k.log 2>&1 &
+nohup python3 /root/extract_from_model_list.py --start-idx 0 --end-idx 20000 --output-dir /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 > /tmp/w1_0_20k.log 2>&1 &
+nohup python3 /root/extract_from_model_list.py --start-idx 20000 --end-idx 40000 --output-dir /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 > /tmp/w1_20k_40k.log 2>&1 &
+nohup python3 /root/extract_from_model_list.py --start-idx 40000 --end-idx 60000 --output-dir /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 > /tmp/w1_40k_60k.log 2>&1 &
+nohup python3 /root/extract_from_model_list.py --start-idx 60000 --end-idx 74860 --output-dir /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 > /tmp/w1_60k_74k.log 2>&1 &
 ```
 
 ### Step 4: 更新Checkpoint为新Worker信息
@@ -450,8 +450,8 @@ cat > /tmp/update_checkpoint.sh << 'EOF'
 #!/bin/bash
 CHECKPOINT_FILE="/root/GraphNetExtractAgent/docs/checkpoints/worker1_checkpoint.md"
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M')
-DIRS=$(find /root/graphnet_workspace/huggingface/worker1 -mindepth 1 -maxdepth 1 -type d ! -empty | wc -l)
-GRAPHS=$(find /root/graphnet_workspace/huggingface/worker1 -name 'graph_hash.txt' | wc -l)
+DIRS=$(find /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 -mindepth 1 -maxdepth 1 -type d ! -empty | wc -l)
+GRAPHS=$(find /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 -name 'graph_hash.txt' | wc -l)
 PROCS=$(ps aux | grep extract_from_model_list | grep worker1 | grep -v grep | wc -l)
 
 echo "更新时间: $TIMESTAMP"
@@ -524,8 +524,8 @@ fi
 echo ""
 
 # 3. 显示当前进度
-DIRS=$(find /root/graphnet_workspace/huggingface/worker1 -mindepth 1 -maxdepth 1 -type d ! -empty | wc -l)
-GRAPHS=$(find /root/graphnet_workspace/huggingface/worker1 -name 'graph_hash.txt' | wc -l)
+DIRS=$(find /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 -mindepth 1 -maxdepth 1 -type d ! -empty | wc -l)
+GRAPHS=$(find /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 -name 'graph_hash.txt' | wc -l)
 echo ">>> 当前进度: 目录=$DIRS 计算图=$GRAPHS"
 ```
 
@@ -537,8 +537,8 @@ echo ">>> 当前进度: 目录=$DIRS 计算图=$GRAPHS"
 # 一键检查 Worker1 状态
 echo "=== $(date +%H:%M) Worker1 状态 ===" && \
 echo "进程数: $(ps aux | grep extract_from_model_list | grep worker1 | grep -v grep | wc -l)" && \
-echo "目录数: $(find /root/graphnet_workspace/huggingface/worker1 -mindepth 1 -maxdepth 1 -type d ! -empty | wc -l)" && \
-echo "计算图: $(find /root/graphnet_workspace/huggingface/worker1 -name 'graph_hash.txt' | wc -l)"
+echo "目录数: $(find /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 -mindepth 1 -maxdepth 1 -type d ! -empty | wc -l)" && \
+echo "计算图: $(find /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 -name 'graph_hash.txt' | wc -l)"
 ```
 
 ---

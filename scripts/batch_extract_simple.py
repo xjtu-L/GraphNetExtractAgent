@@ -13,7 +13,7 @@ from datetime import datetime
 # 设置环境变量
 os.environ["http_proxy"] = "http://agent.baidu.com:8891"
 os.environ["https_proxy"] = "http://agent.baidu.com:8891"
-os.environ["GRAPH_NET_EXTRACT_WORKSPACE"] = "/root/graphnet_workspace"
+os.environ["GRAPH_NET_EXTRACT_WORKSPACE"] = "/ssd1/liangtai-work/graphnet_workspace"
 
 from graph_net.torch.extractor import extract
 

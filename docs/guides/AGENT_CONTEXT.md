@@ -44,12 +44,12 @@
 | GraphNet 仓库 clone | ✅ | `/root/GraphNet/` |
 | `graph_net` 模块可 import | ✅ | 已通过 `pip install -e ".[agent]"` 正式安装（editable mode） |
 | `pip install -e ".[agent]"` | ✅ | 安装位置：`/usr/local/lib/python3.10/dist-packages`，editable 指向 `/root/GraphNet` |
-| `GRAPH_NET_EXTRACT_WORKSPACE` 环境变量 | ✅ 已持久化 | 已写入 `/root/.bashrc`，值为 `/root/graphnet_workspace` |
+| `GRAPH_NET_EXTRACT_WORKSPACE` 环境变量 | ✅ 已持久化 | 已写入 `/root/.bashrc`，值为 `/ssd1/liangtai-work/graphnet_workspace` |
 | `torch` | ✅ 2.11.0 | |
 | `torchvision` | ✅ 0.26.0 | |
 | `transformers` | ✅ 5.3.0 | |
 | `huggingface_hub` | ✅ 1.3.4 | |
-| 工作目录 `/root/graphnet_workspace/` | ✅ 已创建 | 已有 `resnet18_test/` 提取输出 |
+| 工作目录 `/ssd1/liangtai-work/graphnet_workspace/` | ✅ 已创建 | 已有 `resnet18_test/` 提取输出 |
 
 ### 已完成的抽取任务
 
@@ -80,7 +80,7 @@
 | `maskrcnn_resnet50_fpn_v2` | 目标检测 | ✅ | ⚠️ 部分 | 17 subgraphs, 11/17 validate 通过 |
 | `keypointrcnn_resnet50_fpn` | 目标检测 | ✅ | ⚠️ 部分 | 16 subgraphs, 10/16 validate 通过 |
 
-产出位置：`/root/graphnet_workspace/` 下各模型同名目录
+产出位置：`/ssd1/liangtai-work/graphnet_workspace/` 下各模型同名目录
 
 > **检测模型说明**：由于 graph breaks，每个检测模型被拆成多个子图（subgraph_N/）。backbone/FPN 等主要计算子图 validate 通过；后处理子图（NMS/argmin 相关）因随机输入生成空 tensor 导致 validate 失败（`argmin(): Expected reduction dim for input.numel() == 0`），这是输入数据问题而非图结构问题。
 
@@ -119,7 +119,7 @@
 
 ```bash
 # 设置环境变量
-export GRAPH_NET_EXTRACT_WORKSPACE=/root/graphnet_workspace
+export GRAPH_NET_EXTRACT_WORKSPACE=/ssd1/liangtai-work/graphnet_workspace
 
 # 正式安装 graph_net（推荐）
 cd /root/GraphNet && pip install -e ".[agent]"

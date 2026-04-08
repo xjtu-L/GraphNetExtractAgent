@@ -42,19 +42,19 @@ task_tracking/
 
 ```bash
 # 步骤1: 检查任务是否已在进行中
-ls /root/graphnet_workspace/task_tracking/in_progress/ | grep model_id
+ls /ssd1/liangtai-work/graphnet_workspace/task_tracking/in_progress/ | grep model_id
 # 如果有输出 → 任务已被分配，跳过
 
 # 步骤2: 检查任务是否已完成
-grep "model_id" /root/graphnet_workspace/task_tracking/completed/*.txt
+grep "model_id" /ssd1/liangtai-work/graphnet_workspace/task_tracking/completed/*.txt
 # 如果有输出 → 任务已完成，跳过
 
 # 步骤3: 检查任务是否已失败
-grep "model_id" /root/graphnet_workspace/task_tracking/failed/*.txt
+grep "model_id" /ssd1/liangtai-work/graphnet_workspace/task_tracking/failed/*.txt
 # 如果有输出 → 任务曾失败，查看原因后决定是否重试
 
 # 步骤4: 检查pending列表确认任务存在
-grep "model_id" /root/graphnet_workspace/task_tracking/pending/*.txt
+grep "model_id" /ssd1/liangtai-work/graphnet_workspace/task_tracking/pending/*.txt
 ```
 
 ### 2.2 执行时标记（必须！）
@@ -69,7 +69,7 @@ pid=$$
 
 # 写入标记文件
 echo "${worker_id}|${model_id}|${task_type}|${start_time}|${pid}|$(hostname)" \
-  > /root/graphnet_workspace/task_tracking/in_progress/${worker_id}_${model_id}.${task_type}
+  > /ssd1/liangtai-work/graphnet_workspace/task_tracking/in_progress/${worker_id}_${model_id}.${task_type}
 ```
 
 ### 2.3 执行后更新（必须！）
@@ -78,28 +78,28 @@ echo "${worker_id}|${model_id}|${task_type}|${start_time}|${pid}|$(hostname)" \
 
 ```bash
 # 步骤1: 删除进行中标记
-rm /root/graphnet_workspace/task_tracking/in_progress/${worker_id}_${model_id}.${task_type}
+rm /ssd1/liangtai-work/graphnet_workspace/task_tracking/in_progress/${worker_id}_${model_id}.${task_type}
 
 # 步骤2: 添加到完成列表
 echo "${task_type}|${model_id}|${worker_id}|$(date +%Y-%m-%d)" \
-  >> /root/graphnet_workspace/task_tracking/completed/${task_type}.txt
+  >> /ssd1/liangtai-work/graphnet_workspace/task_tracking/completed/${task_type}.txt
 
 # 步骤3: 从pending删除
-sed -i "/${model_id}/d" /root/graphnet_workspace/task_tracking/pending/${task_type}.txt
+sed -i "/${model_id}/d" /ssd1/liangtai-work/graphnet_workspace/task_tracking/pending/${task_type}.txt
 ```
 
 #### 失败时
 
 ```bash
 # 步骤1: 删除进行中标记
-rm /root/graphnet_workspace/task_tracking/in_progress/${worker_id}_${model_id}.${task_type}
+rm /ssd1/liangtai-work/graphnet_workspace/task_tracking/in_progress/${worker_id}_${model_id}.${task_type}
 
 # 步骤2: 添加到失败列表（包含失败原因）
 echo "${task_type}|${model_id}|${worker_id}|reason|$(date +%Y-%m-%d)" \
-  >> /root/graphnet_workspace/task_tracking/failed/${task_type}.txt
+  >> /ssd1/liangtai-work/graphnet_workspace/task_tracking/failed/${task_type}.txt
 
 # 步骤3: 从pending删除
-sed -i "/${model_id}/d" /root/graphnet_workspace/task_tracking/pending/${task_type}.txt
+sed -i "/${model_id}/d" /ssd1/liangtai-work/graphnet_workspace/task_tracking/pending/${task_type}.txt
 ```
 
 ---
@@ -119,7 +119,7 @@ sed -i "/${model_id}/d" /root/graphnet_workspace/task_tracking/pending/${task_ty
 
 ```bash
 # 获取任务前加锁
-lock_file="/root/graphnet_workspace/task_tracking/.lock"
+lock_file="/ssd1/liangtai-work/graphnet_workspace/task_tracking/.lock"
 
 # 尝试获取锁（最多等待30秒）
 for i in {1..30}; do
@@ -183,7 +183,7 @@ done
 # check_task.sh - 检查单个任务状态
 
 model_id=$1
-task_tracking="/root/graphnet_workspace/task_tracking"
+task_tracking="/ssd1/liangtai-work/graphnet_workspace/task_tracking"
 
 echo "检查任务: $model_id"
 echo ""
@@ -223,7 +223,7 @@ exit 0
 worker_id=$1
 task_type=$2  # repair/empty_dirs/extraction
 batch_size=${3:-10}
-task_tracking="/root/graphnet_workspace/task_tracking"
+task_tracking="/ssd1/liangtai-work/graphnet_workspace/task_tracking"
 
 # 获取lock
 lock_file="${task_tracking}/.lock"
@@ -259,7 +259,7 @@ worker_id=$2
 task_type=$3
 status=$4  # completed/failed
 reason=$5  # 失败原因（可选）
-task_tracking="/root/graphnet_workspace/task_tracking"
+task_tracking="/ssd1/liangtai-work/graphnet_workspace/task_tracking"
 
 # 删除进行中标记
 rm -f "${task_tracking}/in_progress/${worker_id}_${model_id}.${task_type}"

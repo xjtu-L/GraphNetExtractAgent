@@ -54,7 +54,7 @@ done
 
 #### 步骤 1: 环境确认
 ```bash
-cd /root/graphnet_workspace/huggingface/worker1
+cd /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1
 echo "当前目录: $(pwd)"
 echo "磁盘空间: $(df -h . | tail -1)"
 ```
@@ -102,7 +102,7 @@ ls -1 | wc -l
 
 | 文件/目录 | 路径 | 用途 |
 |----------|------|------|
-| 工作目录 | `/root/graphnet_workspace/huggingface/worker1` | 模型抽取主目录 |
+| 工作目录 | `/ssd1/liangtai-work/graphnet_workspace/huggingface/worker1` | 模型抽取主目录 |
 | 监控脚本 | `./monitor_memory.sh` | 内存监控 |
 | 日志文件 | `./monitor.log` | 监控日志 |
 | 内存日志 | `/tmp/worker1_mem.log` | 内存使用记录 |
@@ -163,11 +163,11 @@ kill -9 74718 141104
 
 #### 步骤 2: 使用内存限制重启
 ```bash
-cd /root/graphnet_workspace/huggingface/worker1
+cd /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1
 ulimit -v 16777216  # 64GB 虚拟内存限制
 nohup python3 -u /root/extract_from_model_list.py \
   --start-idx 15000 --end-idx 18750 \
-  --output-dir /root/graphnet_workspace/huggingface/worker1 \
+  --output-dir /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 \
   > /tmp/batch_15000_18750.log 2>&1 &
 ```
 
@@ -228,14 +228,14 @@ ps aux | grep "worker1" | grep -v grep
 ps aux --sort=-%mem | head -6
 
 # 统计完成情况
-find /root/graphnet_workspace/huggingface/worker1 -name "graph_net.json" | wc -l
+find /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 -name "graph_net.json" | wc -l
 
 # 查看监控日志
-tail -f /root/graphnet_workspace/huggingface/worker1/monitor.log
+tail -f /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1/monitor.log
 
 # 重启监控脚本
 pkill -f monitor_memory.sh
-cd /root/graphnet_workspace/huggingface/worker1
+cd /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1
 nohup ./monitor_memory.sh >> monitor.log 2>&1 &
 ```
 

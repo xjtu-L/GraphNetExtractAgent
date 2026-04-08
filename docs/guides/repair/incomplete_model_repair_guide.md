@@ -318,10 +318,10 @@ if tokenizer.pad_token is None:
 
 ## 8. 相关文件
 
-- 修复脚本: `/root/graphnet_workspace/huggingface/repair_from_json.py`
-- 残图列表: `/work/graphnet_workspace/incomplete_for_worker2.txt`
-- 批次文件: `/work/graphnet_workspace/batch_for_worker2_v2/`
-- 统计报告: `/work/graphnet_workspace/strict_stats_report.json`
+- 修复脚本: `/ssd1/liangtai-work/graphnet_workspace/huggingface/repair_from_json.py`
+- 残图列表: `/ssd1/liangtai-work/graphnet_workspace/incomplete_for_worker2.txt`
+- 批次文件: `/ssd1/liangtai-work/graphnet_workspace/batch_for_worker2_v2/`
+- 统计报告: `/ssd1/liangtai-work/graphnet_workspace/strict_stats_report.json`
 
 ---
 

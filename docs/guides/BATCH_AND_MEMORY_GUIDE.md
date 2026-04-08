@@ -134,7 +134,7 @@ if __name__ == "__main__":
 python3 extract_from_model_list.py \
     --start-idx 94216 \
     --end-idx 96350 \
-    --output-dir /root/graphnet_workspace/huggingface/worker2
+    --output-dir /ssd1/liangtai-work/graphnet_workspace/huggingface/worker2
 ```
 
 ---
@@ -155,7 +155,7 @@ os.environ.setdefault("HF_ENDPOINT", "https://hf-mirror.com")
 os.environ["http_proxy"] = "http://agent.baidu.com:8891"
 os.environ["https_proxy"] = "http://agent.baidu.com:8891"
 
-WORKSPACE = "/root/graphnet_workspace/huggingface"
+WORKSPACE = "/ssd1/liangtai-work/graphnet_workspace/huggingface"
 
 def generate_extract_script(model_dir, model_id, task_type):
     """生成任务特定的 extract.py"""
@@ -308,7 +308,7 @@ python3 batch_repair_worker_ducc.py \
 #!/bin/bash
 # start_workers.sh - 启动多个 Worker2 进程
 
-OUTPUT_DIR="/root/graphnet_workspace/huggingface/worker2"
+OUTPUT_DIR="/ssd1/liangtai-work/graphnet_workspace/huggingface/worker2"
 
 # Worker2 的批次范围
 BATCHES=(
@@ -431,7 +431,7 @@ python3 extract_from_model_list.py --start-idx 94216 --end-idx 96350
 
 ```bash
 # 1. 检查工作环境
-cd /root/graphnet_workspace/huggingface/worker2
+cd /ssd1/liangtai-work/graphnet_workspace/huggingface/worker2
 pwd
 
 # 2. 确认代理设置
@@ -506,7 +506,7 @@ tail -f /tmp/worker_*.log
 ps aux | grep extract_from_model_list | grep -v grep | awk '{print $13, $14}'
 
 # 如有需要，启动新进程补充
-python3 extract_from_model_list.py --start-idx NEW_START --end-idx NEW_END --output-dir /root/graphnet_workspace/huggingface/worker2
+python3 extract_from_model_list.py --start-idx NEW_START --end-idx NEW_END --output-dir /ssd1/liangtai-work/graphnet_workspace/huggingface/worker2
 ```
 
 ---
@@ -606,7 +606,7 @@ done
 | 监控脚本 | `./monitor_memory.sh` | 内存监控 |
 | 监控日志 | `./monitor.log` | 被杀死的进程记录 |
 | 工作日志 | `/tmp/worker_*.log` | 各批次工作日志 |
-| 模型目录 | `/root/graphnet_workspace/huggingface/worker2/` | 输出目录 |
+| 模型目录 | `/ssd1/liangtai-work/graphnet_workspace/huggingface/worker2/` | 输出目录 |
 
 ---
 
@@ -619,7 +619,7 @@ done
 echo "=== Worker2 初始化 ==="
 
 # 1. 进入工作目录
-cd /root/graphnet_workspace/huggingface/worker2
+cd /ssd1/liangtai-work/graphnet_workspace/huggingface/worker2
 
 # 2. 设置环境
 export HF_ENDPOINT=https://hf-mirror.com

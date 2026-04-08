@@ -247,7 +247,7 @@ export https_proxy=http://agent.baidu.com:8891
 # 单模型抽取
 python -c "
 from graph_net.agent import GraphNetAgent
-agent = GraphNetAgent(workspace='/root/graphnet_workspace/huggingface')
+agent = GraphNetAgent(workspace='/ssd1/liangtai-work/graphnet_workspace/huggingface')
 print(agent.extract_sample('bert-base-uncased'))
 "
 ```
@@ -255,22 +255,22 @@ print(agent.extract_sample('bert-base-uncased'))
 ### 5.2 批量抽取（按 task）
 ```bash
 # text-generation 类模型
-python /root/graphnet_workspace/huggingface/extract_huggingface_batch.py \
+python /ssd1/liangtai-work/graphnet_workspace/huggingface/extract_huggingface_batch.py \
     --task text-generation \
     --count 50 \
-    --workspace /root/graphnet_workspace/huggingface
+    --workspace /ssd1/liangtai-work/graphnet_workspace/huggingface
 
 # sentence-similarity 类模型
-python /root/graphnet_workspace/huggingface/extract_huggingface_batch.py \
+python /ssd1/liangtai-work/graphnet_workspace/huggingface/extract_huggingface_batch.py \
     --task sentence-similarity \
     --count 50 \
-    --workspace /root/graphnet_workspace/huggingface
+    --workspace /ssd1/liangtai-work/graphnet_workspace/huggingface
 ```
 
 ### 5.3 批量验证
 ```bash
 # 验证所有已抽取模型
-for dir in /root/graphnet_workspace/huggingface/*/; do
+for dir in /ssd1/liangtai-work/graphnet_workspace/huggingface/*/; do
     python -m graph_net.torch.validate --model-path "$dir" --no-check-redundancy
 done
 ```
@@ -280,7 +280,7 @@ done
 ## 六、产出文件
 
 ```
-/root/graphnet_workspace/huggingface/
+/ssd1/liangtai-work/graphnet_workspace/huggingface/
 ├── TASK_BREAKDOWN.md           # 本文档
 ├── model_analysis.json         # 模型分析结果
 ├── missing_models.txt          # 待抽取模型列表

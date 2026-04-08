@@ -31,7 +31,7 @@ Worker2应使用基于模型列表的抽取脚本:
 python3 /root/extract_from_model_list.py \
     --start-idx 75001 \
     --end-idx 76001 \
-    --output-dir /root/graphnet_workspace/huggingface/worker2
+    --output-dir /ssd1/liangtai-work/graphnet_workspace/huggingface/worker2
 ```
 
 ### 2. 批量启动多个Subagent
@@ -47,7 +47,7 @@ for i in $(seq 0 7); do
     nohup python3 /root/extract_from_model_list.py \
         --start-idx $batch_start \
         --end-idx $batch_end \
-        --output-dir /root/graphnet_workspace/huggingface/worker2 \
+        --output-dir /ssd1/liangtai-work/graphnet_workspace/huggingface/worker2 \
         > /tmp/extract_batches/worker2_batch_${i}.log 2>&1 &
 done
 ```
@@ -73,7 +73,7 @@ ps aux | grep extract_from_model_list | grep -v grep
 ## 输出目录结构
 
 ```
-/root/graphnet_workspace/huggingface/worker2/
+/ssd1/liangtai-work/graphnet_workspace/huggingface/worker2/
 ├── text-generation/
 │   ├── model_name_1/
 │   │   ├── graph_hash.txt

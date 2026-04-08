@@ -71,7 +71,7 @@
 import torch, timm, os, sys
 from graph_net.torch.extractor import extract
 
-os.environ.setdefault("GRAPH_NET_EXTRACT_WORKSPACE", "/root/graphnet_workspace")
+os.environ.setdefault("GRAPH_NET_EXTRACT_WORKSPACE", "/ssd1/liangtai-work/graphnet_workspace")
 
 def extract_timm_model(name, device="cpu"):
     model = timm.create_model(name, pretrained=False).eval()

@@ -371,7 +371,7 @@ def main():
     )
     parser.add_argument(
         "--also-check",
-        default="/root/graphnet_workspace",
+        default="/ssd1/liangtai-work/graphnet_workspace",
         help="额外检查的 workspace 目录",
     )
     args = parser.parse_args()

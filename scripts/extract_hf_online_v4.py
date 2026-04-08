@@ -24,6 +24,23 @@ os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
 sys.path.insert(0, "/root/GraphNet")
 from graph_net.torch.extractor import extract
 
+# 已知不支持抽取的模型类型/关键词（快速跳过）
+SKIP_MODEL_PATTERNS = [
+    "-gguf", ".gguf", "gguf-", "stable-diffusion", "sd-", "SD-",
+    "wav2vec2", "whisper", "speecht5", "bark", "vits", "tts",
+    "-lora", "_lora", "-onnx", ".onnx", "detectron2",
+]
+
+def should_skip_model(model_id):
+    """检查模型是否应该跳过"""
+    model_lower = model_id.lower()
+    for pattern in SKIP_MODEL_PATTERNS:
+        if pattern.lower() in model_lower:
+            return True, f"Unsupported: {pattern}"
+    return False, None
+
+
+
 try:
     from transformers import AutoModel, AutoModelForSequenceClassification, AutoModelForTokenClassification
     from transformers import AutoModelForQuestionAnswering, AutoModelForMaskedLM, AutoModelForCausalLM

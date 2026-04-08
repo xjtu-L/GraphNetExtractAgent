@@ -36,7 +36,7 @@
 
 ```bash
 # 设置环境变量（每次新会话）
-export GRAPH_NET_EXTRACT_WORKSPACE=/root/graphnet_workspace
+export GRAPH_NET_EXTRACT_WORKSPACE=/ssd1/liangtai-work/graphnet_workspace
 
 # 运行 extract
 cd /root/GraphNet && python your_script.py
@@ -85,8 +85,8 @@ agent.extract_sample('model_id')
 
 | # | 子任务 | 具体操作 | 预期输出 |
 |---|--------|---------|---------|
-| 1.1 | 验证已有样本可运行 | `python -m graph_net.torch.run_model --model-path /root/graphnet_workspace/resnet18_test` | 模型成功执行前向推理 |
-| 1.2 | 验证 validate 可用 | `python -m graph_net.torch.validate --model-path /root/graphnet_workspace/resnet18_test` | validate 通过 |
+| 1.1 | 验证已有样本可运行 | `python -m graph_net.torch.run_model --model-path /ssd1/liangtai-work/graphnet_workspace/resnet18_test` | 模型成功执行前向推理 |
+| 1.2 | 验证 validate 可用 | `python -m graph_net.torch.validate --model-path /ssd1/liangtai-work/graphnet_workspace/resnet18_test` | validate 通过 |
 | 1.3 | 复现 resnet18 的 extract | 手写脚本提取 resnet18，与已有输出对比 | 生成结构一致的输出文件 |
 | 1.4 | 阅读已有 torchvision 测试脚本 | 读 `graph_net/test/vision_model_test.py`（如存在） | 理解批量抽取模式 |
 | 1.5 | 阅读 Agent 管线代码 | 读 `graph_net/agent/graph_net_agent.py` | 理解自动化流程 |

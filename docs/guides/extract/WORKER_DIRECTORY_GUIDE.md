@@ -55,13 +55,13 @@ graphnet_workspace/
 
 ```bash
 # 设置输出路径为 Worker0 的目录
-export GRAPH_NET_EXTRACT_WORKSPACE="/root/graphnet_workspace/huggingface/worker0/text-generation"
+export GRAPH_NET_EXTRACT_WORKSPACE="/ssd1/liangtai-work/graphnet_workspace/huggingface/worker0/text-generation"
 
 # 抓取模型
 python extract_script.py facebook/xmod-base
 
 # 结果位置
-# /root/graphnet_workspace/huggingface/worker0/text-generation/facebook_xmod-base/
+# /ssd1/liangtai-work/graphnet_workspace/huggingface/worker0/text-generation/facebook_xmod-base/
 #     ├── model.py
 #     ├── graph_net.json
 #     └── ...
@@ -71,13 +71,13 @@ python extract_script.py facebook/xmod-base
 
 ```bash
 # 设置输出路径为 Worker1 的目录
-export GRAPH_NET_EXTRACT_WORKSPACE="/root/graphnet_workspace/huggingface/worker1/text-generation"
+export GRAPH_NET_EXTRACT_WORKSPACE="/ssd1/liangtai-work/graphnet_workspace/huggingface/worker1/text-generation"
 
 # 抓取模型
 python extract_script.py Xenova/ernie-2.0-large-en
 
 # 结果位置
-# /root/graphnet_workspace/huggingface/worker1/text-generation/Xenova_ernie-2.0-large-en/
+# /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1/text-generation/Xenova_ernie-2.0-large-en/
 ```
 
 ---
@@ -114,7 +114,7 @@ huggingface/
 ```bash
 # 统计各 Worker 的贡献
 for worker in worker0 worker1 worker2; do
-    count=$(find /root/graphnet_workspace/huggingface/$worker -name "graph_hash.txt" | wc -l)
+    count=$(find /ssd1/liangtai-work/graphnet_workspace/huggingface/$worker -name "graph_hash.txt" | wc -l)
     echo "$worker: $count 个模型"
 done
 ```
@@ -124,8 +124,8 @@ done
 ```bash
 # 后期合并到统一数据库
 for worker in worker0 worker1 worker2; do
-    cp -r /root/graphnet_workspace/huggingface/$worker/*/* \
-          /root/graphnet_workspace/huggingface/merged/
+    cp -r /ssd1/liangtai-work/graphnet_workspace/huggingface/$worker/*/* \
+          /ssd1/liangtai-work/graphnet_workspace/huggingface/merged/
 done
 ```
 
@@ -148,14 +148,14 @@ huggingface/worker0/text-generation/katuni4ka_tiny-random-qwen3/
 **解决方案**：
 ```bash
 # 1. 创建正确的目录结构
-mkdir -p /root/graphnet_workspace/huggingface/worker0/text-generation
+mkdir -p /ssd1/liangtai-work/graphnet_workspace/huggingface/worker0/text-generation
 
 # 2. 移动模型到正确位置
-mv /root/graphnet_workspace/huggingface/katuni4ka_tiny-random-qwen3 \
-   /root/graphnet_workspace/huggingface/worker0/text-generation/
+mv /ssd1/liangtai-work/graphnet_workspace/huggingface/katuni4ka_tiny-random-qwen3 \
+   /ssd1/liangtai-work/graphnet_workspace/huggingface/worker0/text-generation/
 
 # 3. 更新后续抓取脚本，使用正确的输出路径
-export GRAPH_NET_EXTRACT_WORKSPACE="/root/graphnet_workspace/huggingface/worker0/text-generation"
+export GRAPH_NET_EXTRACT_WORKSPACE="/ssd1/liangtai-work/graphnet_workspace/huggingface/worker0/text-generation"
 ```
 
 ### 4.2 如何识别未归类的模型
@@ -164,7 +164,7 @@ export GRAPH_NET_EXTRACT_WORKSPACE="/root/graphnet_workspace/huggingface/worker0
 #!/bin/bash
 # 找出 huggingface 根目录下未归类的模型
 
-WORKSPACE="/root/graphnet_workspace/huggingface"
+WORKSPACE="/ssd1/liangtai-work/graphnet_workspace/huggingface"
 
 for dir in "$WORKSPACE"/*; do
     if [ -d "$dir" ]; then
@@ -202,7 +202,7 @@ tasks_worker2=("feature-extraction" "automatic-speech-recognition")
 # 创建对应目录
 for worker in worker0 worker1 worker2; do
     for task in "${tasks_${worker}[@]}"; do
-        mkdir -p "/root/graphnet_workspace/huggingface/$worker/$task"
+        mkdir -p "/ssd1/liangtai-work/graphnet_workspace/huggingface/$worker/$task"
     done
 done
 ```
@@ -220,19 +220,19 @@ done
 pkill -f extract
 
 # 2. 创建新的 Worker 目录结构
-mkdir -p /root/graphnet_workspace/huggingface/worker0/{text-generation,text-classification,fill-mask}
-mkdir -p /root/graphnet_workspace/huggingface/worker1/{text-generation,text-classification,fill-mask}
+mkdir -p /ssd1/liangtai-work/graphnet_workspace/huggingface/worker0/{text-generation,text-classification,fill-mask}
+mkdir -p /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1/{text-generation,text-classification,fill-mask}
 
 # 3. 将已抓取的模型按 Task 分类移动（手动或脚本）
 # 示例：假设你是 Worker0，负责 text-generation
-mv /root/graphnet_workspace/huggingface/text-generation/model1 \
-   /root/graphnet_workspace/huggingface/worker0/text-generation/
+mv /ssd1/liangtai-work/graphnet_workspace/huggingface/text-generation/model1 \
+   /ssd1/liangtai-work/graphnet_workspace/huggingface/worker0/text-generation/
 
 # 4. 更新所有脚本中的输出路径
 # 修改前:
-# os.environ["GRAPH_NET_EXTRACT_WORKSPACE"] = "/root/graphnet_workspace/huggingface/text-generation"
+# os.environ["GRAPH_NET_EXTRACT_WORKSPACE"] = "/ssd1/liangtai-work/graphnet_workspace/huggingface/text-generation"
 # 修改后:
-# os.environ["GRAPH_NET_EXTRACT_WORKSPACE"] = "/root/graphnet_workspace/huggingface/worker0/text-generation"
+# os.environ["GRAPH_NET_EXTRACT_WORKSPACE"] = "/ssd1/liangtai-work/graphnet_workspace/huggingface/worker0/text-generation"
 ```
 
 ### 5.2 批量移动未归类模型
@@ -241,7 +241,7 @@ mv /root/graphnet_workspace/huggingface/text-generation/model1 \
 #!/bin/bash
 # 批量移动未归类模型到 Worker 目录
 
-WORKSPACE="/root/graphnet_workspace/huggingface"
+WORKSPACE="/ssd1/liangtai-work/graphnet_workspace/huggingface"
 WORKER="worker0"  # 修改为你的 Worker 编号
 
 # 遍历 huggingface 根目录

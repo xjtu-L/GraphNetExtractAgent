@@ -23,7 +23,7 @@ from pathlib import Path
 # 设置代理和环境变量
 os.environ.setdefault("http_proxy", "http://agent.baidu.com:8891")
 os.environ.setdefault("https_proxy", "http://agent.baidu.com:8891")
-os.environ.setdefault("GRAPH_NET_EXTRACT_WORKSPACE", "/root/graphnet_workspace/huggingface")
+os.environ.setdefault("GRAPH_NET_EXTRACT_WORKSPACE", "/ssd1/liangtai-work/graphnet_workspace/huggingface")
 
 SAMPLES_DIR = "/root/GraphNet/samples/transformers-auto-model"
 
@@ -186,7 +186,7 @@ def main():
     parser.add_argument("--limit", type=int, default=100, help="最大抽取数量")
     parser.add_argument("--discover-limit", type=int, default=1000, help="最大发现数量")
     parser.add_argument("--agent-id", default="agent-default", help="Agent ID")
-    parser.add_argument("--workspace", default="/root/graphnet_workspace/huggingface", help="Workspace")
+    parser.add_argument("--workspace", default="/ssd1/liangtai-work/graphnet_workspace/huggingface", help="Workspace")
 
     args = parser.parse_args()
 

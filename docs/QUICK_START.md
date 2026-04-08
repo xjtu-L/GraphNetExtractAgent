@@ -61,7 +61,7 @@ Worker2已完成残图修复，可以全力投入新模型抓取。
 
 ```bash
 # 1. 找到待修复的残图
-find /root/graphnet_workspace/huggingface -type d -name "subgraph_*" \
+find /ssd1/liangtai-work/graphnet_workspace/huggingface -type d -name "subgraph_*" \
   ! -exec test -f {}/../graph_hash.txt \; -print 2>/dev/null | head -5
 
 # 2. 使用from_config修复脚本

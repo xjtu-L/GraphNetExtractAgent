@@ -55,7 +55,7 @@ def safe_model_name(model_id):
 
 def get_workspace(task_type):
     """获取任务类型对应的workspace路径 - 强制归类"""
-    base = "/root/graphnet_workspace/huggingface"
+    base = "/ssd1/liangtai-work/graphnet_workspace/huggingface"
     workspace = os.path.join(base, task_type)
     # 确保目录存在
     os.makedirs(workspace, exist_ok=True)
@@ -65,7 +65,7 @@ def get_workspace(task_type):
 def validate_workspace():
     """验证workspace路径，防止保存到根目录"""
     ws = os.environ.get("GRAPH_NET_EXTRACT_WORKSPACE", "")
-    if not ws or ws == "/root/graphnet_workspace":
+    if not ws or ws == "/ssd1/liangtai-work/graphnet_workspace":
         print("[ERROR] GRAPH_NET_EXTRACT_WORKSPACE not set or set to root workspace!")
         print("[ERROR] Models must be saved to task-specific folders!")
         sys.exit(1)

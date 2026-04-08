@@ -229,7 +229,7 @@ def generate_extract_py(model_path, model_id):
 
 ```bash
 # 统计缺失 extract.py 的模型
-find /root/graphnet_workspace/huggingface/worker2 -name "model.py" -exec dirname {} \; | while read dir; do [ ! -f "$dir/extract.py" ] && basename "$dir"; done | wc -l
+find /ssd1/liangtai-work/graphnet_workspace/huggingface/worker2 -name "model.py" -exec dirname {} \; | while read dir; do [ ! -f "$dir/extract.py" ] && basename "$dir"; done | wc -l
 
 # 生成缺失的 extract.py
 python3 /root/generate_extract_py.py
