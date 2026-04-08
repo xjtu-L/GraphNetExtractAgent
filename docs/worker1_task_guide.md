@@ -6,6 +6,8 @@ Worker1 负责从模型列表中提取**所有类型**的HuggingFace模型的计
 
 ### 支持的模型类型
 
+#### Transformers 模型
+
 | 类型 | 关键词示例 | 模型类 |
 |------|-----------|--------|
 | **text-generation** | gpt, llama, mistral, qwen, yi, falcon, bloom | AutoModelForCausalLM |
@@ -19,14 +21,108 @@ Worker1 负责从模型列表中提取**所有类型**的HuggingFace模型的计
 | **image-classification** | vit, resnet, image, vision | AutoModelForImageClassification |
 | **feature-extraction** | 其他类型 | AutoModel |
 
+#### Diffusers 模型（扩散模型）
+
+| 类型 | 示例 | 抽取组件 | 说明 |
+|------|------|----------|------|
+| **Stable Diffusion** | runwayml/stable-diffusion-v1-5 | UNet2DConditionModel | 抽取 UNet 组件 |
+| **SDXL** | stabilityai/stable-diffusion-xl-base-1.0 | UNet2DConditionModel | 抽取 UNet 组件 |
+| **ControlNet** | lllyasviel/sd-controlnet-canny | ControlNetModel | 独立条件控制模型 |
+| **LoRA** | - | - | 跳过，需要基础模型 |
+
+**Diffusers 抽取示例：**
+
+```python
+from diffusers import UNet2DConditionModel
+from graph_net.torch.extractor import extract
+import torch
+
+# 加载 UNet
+unet = UNet2DConditionModel.from_pretrained(
+    "runwayml/stable-diffusion-v1-5",
+    subfolder="unet"
+)
+unet.eval()
+
+# 准备输入
+latent = torch.randn(1, 4, 64, 64)
+timestep = torch.tensor([500.0])
+encoder_hidden_states = torch.randn(1, 77, 768)
+
+# 抽取（单一计算图范式）
+wrapped = extract(name="sd15_unet", dynamic=False)(unet)
+with torch.no_grad():
+    output = wrapped(latent, timestep, encoder_hidden_states)
+
+# 生成 graph_hash.txt
+import hashlib
+with open("model.py", "r") as f:
+    hash_val = hashlib.sha256(f.read().encode()).hexdigest()
+with open("graph_hash.txt", "w") as f:
+    f.write(hash_val)
+```
+
+### Diffusers 抽取经验总结
+
+#### 1. 模型类型识别
+
+| 类型关键词 | 模型类 | 输入规格 |
+|-----------|--------|---------|
+| `stable-diffusion`, `sd15`, `sd21` | UNet2DConditionModel | latent[1,4,64,64], timestep[1], encoder_hidden_states[1,77,768] |
+| `sdxl` | UNet2DConditionModel | latent[1,4,128,128], timestep[1], encoder_hidden_states[1,77,2048] |
+| `controlnet`, `control_net` | ControlNetModel | latent[1,4,64,64], timestep[1], encoder_hidden_states[1,77,768], controlnet_cond[1,3,512,512] |
+
+#### 2. 常见问题与解决方案
+
+**问题1：嵌套目录**
+- 现象：抽取结果在 `model_dir/model_name/` 而非 `model_dir/`
+- 原因：GraphNet extract 使用模型名创建子目录
+- 解决：
+  ```python
+  def fix_nested_directory(model_path):
+      for item in os.listdir(model_path):
+          nested = os.path.join(model_path, item)
+          if os.path.isdir(nested) and (item == "unet" or item == "controlnet"):
+              for f in os.listdir(nested):
+                  src = os.path.join(nested, f)
+                  dst = os.path.join(model_path, f)
+                  if not os.path.exists(dst):
+                      os.rename(src, dst)
+              os.rmdir(nested)
+  ```
+
+**问题2：缺少 extract.py**
+- 现象：Diffusers 模型抽取后无 extract.py
+- 原因：GraphNet 未为 diffusers 模型自动生成
+- 解决：手动生成，参考 `batch_sd_extraction.py` 中的 `generate_missing_files()`
+
+**问题3：缺少 graph_hash.txt**
+- 现象：model.py 同级目录无 graph_hash.txt
+- 解决：计算 model.py 的 SHA256 哈希值写入
+
+#### 3. 抽取后处理流程
+
+```python
+# 1. 修复嵌套目录
+fix_nested_directory(output_dir)
+
+# 2. 生成缺失文件
+generate_missing_files(output_dir, model_id, model_type)
+
+# 3. 验证完整性
+required_files = ['extract.py', 'model.py', 'graph_hash.txt', 'graph_net.json']
+for f in required_files:
+    assert os.path.exists(os.path.join(output_dir, f)), f"缺少 {f}"
+```
+
 ## 工作环境
 
 ### 目录结构
 - 模型列表: `/root/GraphNetExtractAgent/data/model_lists/our_models_300k.txt`
 - 抽取脚本: `/root/extract_from_model_list.py`
-- 输出目录: `/root/graphnet_workspace/huggingface/worker1/`
-- 批次模板: `/root/graphnet_workspace/huggingface/worker1/batch_extraction_template.py`
-- 监控报告: `/root/graphnet_workspace/huggingface/worker1/subagent_report.json`
+- 输出目录: `/ssd1/liangtai-work/graphnet_workspace/huggingface/worker1/`
+- 批次模板: `/ssd1/liangtai-work/graphnet_workspace/huggingface/worker1/batch_extraction_template.py`
+- 监控报告: `/ssd1/liangtai-work/graphnet_workspace/huggingface/worker1/subagent_report.json`
 
 ### 输出子目录
 按任务类型自动分类到子目录：
@@ -54,7 +150,7 @@ worker1/
 使用批次模板启动多进程并行抽取：
 
 ```bash
-cd /root/graphnet_workspace/huggingface/worker1
+cd /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1
 
 # 启动36个批次，每批2135个模型，最大20并行
 python3 batch_extraction_template.py \
@@ -62,7 +158,7 @@ python3 batch_extraction_template.py \
     --end-idx 74860 \
     --batch-size 2135 \
     --max-workers 20 \
-    --output-dir "/root/graphnet_workspace/huggingface/worker1"
+    --output-dir "/ssd1/liangtai-work/graphnet_workspace/huggingface/worker1"
 ```
 
 ### 独立批次启动 (备用)
@@ -74,7 +170,7 @@ python3 batch_extraction_template.py \
 nohup python3 /root/extract_from_model_list.py \
     --start-idx 0 \
     --end-idx 2135 \
-    --output-dir /root/graphnet_workspace/huggingface/worker1 \
+    --output-dir /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 \
     > /tmp/worker1_batch_001.log 2>&1 &
 ```
 
@@ -92,7 +188,7 @@ ps aux | grep worker1_monitor_subagent
 tail -f /tmp/worker1_subagent_monitor.log
 
 # 查看最新报告
-cat /root/graphnet_workspace/huggingface/worker1/subagent_report.json
+cat /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1/subagent_report.json
 ```
 
 ### 手动查看进度
@@ -101,13 +197,13 @@ cat /root/graphnet_workspace/huggingface/worker1/subagent_report.json
 # 统计各类型完整模型数
 for task in text-classification text-generation fill-mask feature-extraction \
             token-classification question-answering automatic-speech-recognition; do
-    count=$(find /root/graphnet_workspace/huggingface/worker1/$task \
+    count=$(find /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1/$task \
             -name "graph_net.json" 2>/dev/null | wc -l)
     echo "$task: $count"
 done
 
 # 总完成数
-find /root/graphnet_workspace/huggingface/worker1 \
+find /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 \
     -name "graph_net.json" | wc -l
 ```
 
@@ -127,6 +223,66 @@ find /root/graphnet_workspace/huggingface/worker1 \
 | image-classification | vit, resnet, convnext, image, vision, clip, detr, sam |
 | vision2seq | llava, blip, flamingo, multimodal, vqa, vision-language |
 | feature-extraction | 其他（默认） |
+
+## 抽取范式（重要）
+
+GraphNet 支持两种抽取范式，都是有效的输出结构：
+
+### 范式一：多子图结构
+
+适用于复杂模型，计算图被拆分成多个独立的子图：
+
+```
+model_name/
+├── extract.py              # 复现脚本（必须有）
+├── subgraph_0/
+│   ├── model.py            # 子图模型代码
+│   ├── graph_hash.txt      # 哈希值（必须有）
+│   ├── graph_net.json      # 计算图
+│   ├── weight_meta.py      # 权重元信息
+│   ├── input_meta.py
+│   └── input_tensor_constraints.py
+├── subgraph_1/
+│   └── ...
+└── subgraph_N/
+```
+
+### 范式二：单一计算图结构
+
+适用于简单模型或特殊模型（如 Stable Diffusion UNet）：
+
+```
+model_name/
+├── extract.py              # 复现脚本（必须有）
+├── model.py                # 模型代码
+├── graph_hash.txt          # 哈希值（必须有）
+├── graph_net.json          # 计算图
+├── weight_meta.py          # 权重元信息
+├── input_meta.py
+└── input_tensor_constraints.py
+```
+
+### 文件要求（强制）
+
+| 文件 | 位置 | 说明 |
+|------|------|------|
+| `extract.py` | 模型根目录 | 复现脚本，必须存在 |
+| `graph_hash.txt` | 与 model.py 同级 | 模型哈希值，必须存在 |
+| `model.py` | 子图目录或根目录 | 模型代码 |
+| `graph_net.json` | 与 model.py 同级 | 计算图定义 |
+
+### 生成缺失文件
+
+如果抽取结果缺少必要文件，需手动补充：
+
+```python
+# 生成 graph_hash.txt
+import hashlib
+with open("model.py", "r") as f:
+    hash_val = hashlib.sha256(f.read().encode()).hexdigest()
+with open("graph_hash.txt", "w") as f:
+    f.write(hash_val)
+```
 
 ## 质量管控流程（重要）
 
@@ -157,7 +313,7 @@ find /root/graphnet_workspace/huggingface/worker1 \
 
 **检测命令：**
 ```bash
-find /root/graphnet_workspace/huggingface/worker1 -type d -empty
+find /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 -type d -empty
 ```
 
 **处理步骤：**
@@ -170,20 +326,45 @@ find /root/graphnet_workspace/huggingface/worker1 -type d -empty
 ### 残图检测标准
 
 **正确格式判断：**
-```python
-# 格式1: 多子图
-has_subgraph = any(d.startswith('subgraph_') for d in os.listdir(model_dir))
-has_model_py = os.path.exists(os.path.join(sg_path, 'model.py'))
-has_graph_hash = os.path.exists(os.path.join(sg_path, 'graph_hash.txt'))
 
-# 格式2: 单子图
-has_model_py = os.path.exists(os.path.join(model_dir, 'model.py'))
-has_graph_hash = os.path.exists(os.path.join(model_dir, 'graph_hash.txt'))
+```python
+import os
+
+def check_extraction_valid(model_dir):
+    """检查抽取结果是否有效"""
+    issues = []
+
+    # 必须有 extract.py
+    if not os.path.exists(os.path.join(model_dir, 'extract.py')):
+        issues.append("缺少 extract.py")
+
+    # 检查范式一：多子图结构
+    subgraphs = [d for d in os.listdir(model_dir)
+                 if d.startswith('subgraph_') and os.path.isdir(os.path.join(model_dir, d))]
+
+    if subgraphs:
+        # 多子图范式：检查每个子图
+        for sg in subgraphs:
+            sg_path = os.path.join(model_dir, sg)
+            if not os.path.exists(os.path.join(sg_path, 'model.py')):
+                issues.append(f"{sg} 缺少 model.py")
+            if not os.path.exists(os.path.join(sg_path, 'graph_hash.txt')):
+                issues.append(f"{sg} 缺少 graph_hash.txt")
+    else:
+        # 范式二：单一计算图结构
+        if not os.path.exists(os.path.join(model_dir, 'model.py')):
+            issues.append("缺少 model.py（单一计算图范式）")
+        if not os.path.exists(os.path.join(model_dir, 'graph_hash.txt')):
+            issues.append("缺少 graph_hash.txt（单一计算图范式）")
+
+    return len(issues) == 0, issues
 ```
 
 **残图类型：**
-- `NO_SUBGRAPH`: 无子图目录且无model.py
-- `INCOMPLETE_SUBGRAPH`: 子图缺少核心文件
+- `NO_EXTRACT_PY`: 缺少 extract.py
+- `NO_MODEL_PY`: 无 model.py（根目录或子图目录）
+- `NO_GRAPH_HASH`: 有 model.py 但缺少 graph_hash.txt
+- `EMPTY_DIR`: 空目录
 
 ## 嵌套目录问题
 
@@ -213,7 +394,7 @@ GraphNet创建 workspace/model_name/ 目录
 **检测命令：**
 ```bash
 # 查找所有同名嵌套目录
-find /root/graphnet_workspace/huggingface/worker1 -mindepth 2 -maxdepth 3 -type d | while read dir; do
+find /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 -mindepth 2 -maxdepth 3 -type d | while read dir; do
   dirname=$(basename "$dir")
   if [ -d "$dir/$dirname" ]; then
     echo "NESTED: $dir/$dirname"
@@ -279,7 +460,7 @@ rmdir inner_dir
 
 **批量修复所有嵌套目录：**
 ```bash
-find /root/graphnet_workspace/huggingface/worker1 -mindepth 2 -maxdepth 3 -type d | while read dir; do
+find /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 -mindepth 2 -maxdepth 3 -type d | while read dir; do
   dirname=$(basename "$dir")
   nested="$dir/$dirname"
 
@@ -609,7 +790,7 @@ empty_dirs=0
 incomplete=0
 nested_fixed=0
 
-for dir in /root/graphnet_workspace/huggingface/worker1/*/; do
+for dir in /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1/*/; do
     # 检查空目录
     if [ -z "$(ls -A "$dir" 2>/dev/null)" ]; then
         echo "空目录: $dir"
@@ -700,7 +881,7 @@ def load_with_retry(model_id):
 如果进程被杀死，批次模板会自动检测并重启。如需手动恢复：
 ```bash
 # 检查批次状态
-cat /root/graphnet_workspace/huggingface/worker1/subagent_report.json
+cat /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1/subagent_report.json
 
 # 重启缺失的批次
 python3 batch_extraction_template.py --start-idx X --end-idx Y ...
@@ -814,7 +995,7 @@ Fetching 24 files:  96%|█████████▌| 23_24 [00:41<00:01,  1.0
 
 ```bash
 # 查找异常目录
-cd /root/graphnet_workspace/huggingface/worker1
+cd /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1
 find . -type d -name "File *"          # Python错误堆栈
 find . -type d -name "Fetching*"       # 进度条输出
 find . -type d -name "*Traceback*"     # Traceback信息
@@ -858,7 +1039,7 @@ os.environ["PYTHONUNBUFFERED"] = "1"
 ### 清理命令
 
 ```bash
-cd /root/graphnet_workspace/huggingface/worker1
+cd /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1
 
 # 清理所有异常目录
 find . -type d -name "File *" -exec rm -rf {} + 2>/dev/null
