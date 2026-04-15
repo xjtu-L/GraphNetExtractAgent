@@ -25,7 +25,7 @@ os.environ["https_proxy"] = "http://agent.baidu.com:8891"
 # 设置环境变量
 os.environ.setdefault("HF_ENDPOINT", "https://hf-mirror.com")
 
-sys.path.insert(0, "/root/GraphNet")
+sys.path.insert(0, "/ssd1/liangtai-work/GraphNet")
 from graph_net.torch.extractor import extract
 
 try:
@@ -50,7 +50,7 @@ TASK_MODEL_MAP = {
 
 # 任务类型到workspace的映射 - 强制归类
 def get_workspace(task_type):
-    base = "/root/graphnet_workspace/huggingface"
+    base = "/ssd1/liangtai-work/graphnet_workspace/huggingface/worker1"
     workspace = os.path.join(base, task_type)
     # 确保目录存在
     os.makedirs(workspace, exist_ok=True)

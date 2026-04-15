@@ -870,6 +870,79 @@ def load_with_retry(model_id):
     return AutoConfig.from_pretrained(model_id, trust_remote_code=True)
 ```
 
+### 4. 需要远程代码文件的超大模型（如 DeepseekV3）
+
+**示例：** `adaarsh28/Nihongo-L1-TTS-2026`
+
+**特点：**
+- 使用 `auto_map` 需要从 HuggingFace 下载自定义模型代码文件
+- 模型架构庞大（DeepseekV3: 61层，384专家，7168隐藏维度）
+- 包含量化配置需要移除
+
+**处理步骤：**
+
+```python
+# 1. 从 HuggingFace 下载远程代码文件
+from huggingface_hub import hf_hub_download
+
+model_id = "adaarsh28/Nihongo-L1-TTS-2026"
+local_dir = "./adaarsh28_Nihongo-L1-TTS-2026"
+
+# 下载 auto_map 中指定的文件
+files_to_download = ["configuration_deepseek.py", "modeling_deepseek.py"]
+for f in files_to_download:
+    hf_hub_download(repo_id=model_id, filename=f, local_dir=local_dir)
+
+# 2. 加载配置并移除量化配置
+from transformers import AutoConfig, AutoModelForCausalLM
+
+config = AutoConfig.from_pretrained(local_dir, trust_remote_code=True)
+if hasattr(config, 'quantization_config'):
+    delattr(config, 'quantization_config')
+
+# 3. 使用 from_config 创建模型（随机权重）
+model = AutoModelForCausalLM.from_config(config, trust_remote_code=True)
+model = model.to('cuda:0').eval()
+
+# 4. 准备输入并抽取
+import torch
+from graph_net.torch.extractor import extract
+
+vocab_size = getattr(config, 'vocab_size', 32000)
+input_ids = torch.randint(0, min(vocab_size, 1000), (1, 32)).to('cuda:0')
+
+os.environ["GRAPH_NET_EXTRACT_WORKSPACE"] = output_dir
+wrapped = extract(name=model_name, dynamic=False)(model)
+with torch.no_grad():
+    wrapped(input_ids)
+```
+
+**失败原因：**
+- 超大模型（如 DeepseekV3）即使使用随机权重初始化也需要 200GB+ 内存
+- 如果内存不足，会被 OOM Killer 杀死
+
+**解决方案：**
+1. 需要更大内存的机器（建议 500GB+ 内存）
+2. 使用模型并行/张量并行技术分割模型
+3. 只抽取部分层（需要修改抽取逻辑）
+4. 使用 meta device 初始化（`device="meta"`）避免分配实际内存
+
+**使用 meta device 的方案（推荐）：**
+```python
+# 使用 meta device 避免分配内存
+with torch.device("meta"):
+    model = AutoModelForCausalLM.from_config(config, trust_remote_code=True)
+
+# 然后使用 torch.compile 的特定后端进行抽取
+# 注意：这需要 GraphNet 支持 meta device
+```
+
+**记录格式：**
+```bash
+# 创建说明文件
+echo "模型太大，OOM 被杀" > model_dir/SKIP_REASON.md
+```
+
 ## 常见问题
 
 ### 1. 内存监控

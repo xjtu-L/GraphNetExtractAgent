@@ -286,9 +286,36 @@ find . -name "graph_hash.txt" -type f | while read f; do
 done
 ```
 
+## 质量要求
+
+> **核心目标**：抽取的计算图必须能够正确执行 `run_model`（加载模型并执行 forward）。
+
+### SymInt Example Value 推断要求
+
+抽取时必须从 tensor shapes 推断 SymInt 参数的真实值，不能全部设为 placeholder 值 `4`。
+
+| SymInt 参数 | 推断来源 |
+|------------|---------|
+| `s0` (seq_len) | 从输入 tensor（非权重）的第二维推断 |
+| `L_self_head_dim` | 从 `position_embeddings` tensor 的最后一维推断 |
+
+### API 兼容性要求
+
+避免使用低级 API 如 `torch.ops.aten._assert_scalar`，或确保参数类型符合 API 要求。
+
+### 验证方法
+
+抽取完成后建议运行：
+```bash
+python3.10 -m graph_net.torch.run_model --model-path <subgraph_path>
+```
+
+---
+
 ## 历史记录
 
 - **2024-03-31**: 定义标准格式，修复286个模型的extract.py
 - **2024-04-01**: 添加目录结构与统计规则
 - **2024-04-01**: 添加 graph_hash.txt 生成方法
-- **标准版本**: v1.2
+- **2026-04-13**: 添加质量要求（SymInt 推断、API 兼容性）
+- **标准版本**: v1.3

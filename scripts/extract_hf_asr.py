@@ -32,7 +32,7 @@ except ImportError as e:
     sys.exit(1)
 
 def get_workspace(task_type):
-    base = "/work/graphnet_workspace/huggingface"
+    base = "/ssd1/liangtai-work/graphnet_workspace/huggingface"
     workspace = os.path.join(base, task_type)
     os.makedirs(workspace, exist_ok=True)
     return workspace
@@ -215,7 +215,7 @@ def main():
         "failed": failed,
         "timestamp": datetime.now().isoformat(),
     }
-    result_file = f"/work/graphnet_workspace/batch_reextract/result_{args.agent_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    result_file = f"/ssd1/liangtai-work/graphnet_workspace/batch_reextract/result_{args.agent_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
     os.makedirs(os.path.dirname(result_file), exist_ok=True)
     with open(result_file, "w") as f:
         json.dump(result, f, indent=2)

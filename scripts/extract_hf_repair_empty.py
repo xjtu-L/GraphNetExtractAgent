@@ -44,7 +44,7 @@ TASK_MODEL_MAP = {
 }
 
 def get_workspace(task_type):
-    base = "/work/graphnet_workspace/huggingface"
+    base = "/ssd1/liangtai-work/graphnet_workspace/huggingface"
     workspace = os.path.join(base, task_type)
     os.makedirs(workspace, exist_ok=True)
     return workspace
@@ -110,7 +110,7 @@ def mark_status(model_dir, status, worker="Worker2", error=""):
 def find_model_task(model_id):
     """查找模型所属的任务类型"""
     safe_name = safe_model_name(model_id)
-    base = "/work/graphnet_workspace/huggingface"
+    base = "/ssd1/liangtai-work/graphnet_workspace/huggingface"
 
     # 尝试在各个任务目录中查找
     for task in TASK_MODEL_MAP.keys():

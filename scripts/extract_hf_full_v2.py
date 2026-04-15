@@ -45,7 +45,7 @@ TASK_MODEL_MAP = {
 }
 
 def get_workspace(task_type):
-    base = "/work/graphnet_workspace/huggingface"
+    base = "/ssd1/liangtai-work/graphnet_workspace/huggingface"
     workspace = os.path.join(base, task_type)
     os.makedirs(workspace, exist_ok=True)
     return workspace
