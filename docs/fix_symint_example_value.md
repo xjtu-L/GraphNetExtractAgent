@@ -154,12 +154,12 @@ def fix_symint_values(sg_path):
 # 修复单个子图
 python3.10 -c "
 from fix_symint import fix_symint_values
-result = fix_symint_values('/ssd1/liangtai-work/lt_submit4.10_sample_10/subgraph_1')
+result = fix_symint_values('./output/subgraph_1')
 print(result)
 "
 
 # 批量修复
-for sg in /ssd1/liangtai-work/lt_submit4.10_sample_10/subgraph_*; do
+for sg in ./output/subgraph_*; do
     python3.10 -c "from fix_symint import fix_symint_values; print(fix_symint_values('$sg'))"
 done
 ```
@@ -167,7 +167,7 @@ done
 ## 修复后验证
 
 ```bash
-python3.10 /ssd1/liangtai-work/DimGeneralizeAgent/scripts/ops.py verify /ssd1/liangtai-work/lt_submit4.10_sample_10/subgraph_1
+python3.10 -m graph_net.torch.run_model --model-path ./output/subgraph_1
 # 输出: OK: runs successfully
 ```
 
@@ -243,6 +243,6 @@ fix_assert_scalar("/path/to/subgraph/model.py")
 ### 验证
 
 ```bash
-python3.10 /ssd1/liangtai-work/DimGeneralizeAgent/scripts/ops.py verify /path/to/subgraph
+python3.10 -m graph_net.torch.run_model --model-path /path/to/subgraph
 # 输出: OK: runs successfully
 ```
