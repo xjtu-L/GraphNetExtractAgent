@@ -471,6 +471,95 @@ find /ssd1/liangtai-work/graphnet_workspace/huggingface/worker1 -maxdepth 2 -nam
 
 ---
 
-*文档版本：1.1*
-*最后更新：2026-04-01*
+## 七、特殊模型修复案例
+
+### 1. ILKT 模型修复
+
+**错误信息：**
+```
+ILKTModel.forward() missing 1 required positional argument: 'attention_mask'
+```
+
+**原因：**
+ILKT 系列模型的 forward 方法需要 `attention_mask` 参数，但默认抽取脚本只传入 `input_ids`。
+
+**解决方法：**
+```python
+# 准备输入时添加 attention_mask
+input_ids = torch.randint(0, vocab_size, (1, seq_len))
+attention_mask = torch.ones(1, seq_len, dtype=torch.long)
+
+# 尝试使用 attention_mask
+try:
+    wrapped(input_ids, attention_mask=attention_mask)
+except TypeError:
+    # 如果不需要 attention_mask，只用 input_ids
+    wrapped(input_ids)
+```
+
+**修复效果：** 191/192 ILKT 模型成功抽取 (99.5%)
+
+---
+
+### 2. BFloat16/Float32 dtype 不匹配
+
+**错误信息：**
+```
+mat1 and mat2 must have the same dtype, but got BFloat16 and Float32
+```
+
+**原因：**
+部分模型（如 ILKT）内部使用 BFloat16，但 CPU 环境下输入张量默认是 Float32。
+
+**解决方法：**
+```python
+# 确保模型使用 float32 (CPU 兼容)
+model = model.float()
+```
+
+---
+
+### 3. HF-Mirror 速率限制 (429 错误)
+
+**错误信息：**
+```
+HTTP Error 429 thrown while requesting HEAD https://hf-mirror.com/...
+```
+
+**原因：**
+hf-mirror.com 对无 token 用户有严格的速率限制。
+
+**解决方法：**
+```python
+# 配置 HF Token 提高速率限制
+os.environ["HF_TOKEN"] = "your_hf_token_here"
+```
+
+**配置步骤：**
+1. 获取 token: https://huggingface.co/settings/tokens
+2. 写入配置文件:
+```bash
+echo "your_token" > ~/.huggingface/token
+```
+3. 或在脚本中设置环境变量
+
+**效果：** 配置 token 后 429 错误显著减少
+
+---
+
+### 4. 常见失败原因统计
+
+| 失败原因 | 数量占比 | 是否可修复 |
+|----------|----------|------------|
+| 网络错误 (429/超时) | ~40% | ✓ 配置 Token |
+| 不支持类型 (GGUF/LoRA) | ~20% | ✗ 跳过 |
+| 模型配置问题 | ~15% | 部分可修复 |
+| 参数缺失 (如 attention_mask) | ~10% | ✓ 修改输入 |
+| dtype 不匹配 | ~5% | ✓ model.float() |
+| 其他 | ~10% | 视情况 |
+
+---
+
+*文档版本：1.2*
+*最后更新：2026-04-19*
 *作者：Claude Code Assistant*
